@@ -1,4 +1,4 @@
-package com.framework.db.core.model;
+package com.framework.db.core.model.mapper;
 
 import java.util.LinkedList;
 import java.util.List;

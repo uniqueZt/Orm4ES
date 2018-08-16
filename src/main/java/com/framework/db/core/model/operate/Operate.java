@@ -1,4 +1,4 @@
-package com.framework.db.core.model;
+package com.framework.db.core.model.operate;
 
 /**
  * Created by zhangteng on 2018/8/17.
