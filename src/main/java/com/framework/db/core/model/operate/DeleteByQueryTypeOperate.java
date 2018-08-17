@@ -3,7 +3,7 @@ package com.framework.db.core.model.operate;
 /**
  * Created by zhangteng on 2018/8/17.
  */
-public class DeleteByQueryTypeOperate {
+public class DeleteByQueryTypeOperate extends Operate{
 
     private String index;
 

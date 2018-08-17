@@ -3,7 +3,9 @@ package com.framework.db.core.model.operate;
 /**
  * Created by zhangteng on 2018/8/17.
  */
-public class SqlSelectTypeOperate {
+public class SqlSelectTypeOperate extends Operate{
+
+    public final static long defaultSqlSelectSize = 200L;
 
     private String formatSql;
 

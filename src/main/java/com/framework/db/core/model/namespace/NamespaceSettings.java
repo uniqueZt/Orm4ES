@@ -7,13 +7,20 @@ import java.util.Map;
  * Created by zhangteng on 2018/8/17.
  */
 public class NamespaceSettings {
-     private Map<String,Namespace> namespaceMap = new HashMap<String, Namespace>();
+
+    private final static NamespaceSettings instance = new NamespaceSettings();
+
+    private NamespaceSettings(){
+
+    }
+
+    private Map<String,Namespace> namespaceMap = new HashMap<String, Namespace>();
 
     public Map<String, Namespace> getNamespaceMap() {
         return namespaceMap;
     }
 
-    public void setNamespaceMap(Map<String, Namespace> namespaceMap) {
-        this.namespaceMap = namespaceMap;
-    }
+    public static NamespaceSettings getInstance;
+
+
 }

@@ -12,14 +12,5 @@ import java.util.List;
  */
 public class JsonTypeMapper extends Mapper {
 
-    //存放多个映射属性
-    private List<Attributes> attributes = new LinkedList<Attributes>();
-
-    public List<Attributes> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(List<Attributes> attributes) {
-        this.attributes = attributes;
-    }
+    public final static String JSON = "json";
 }

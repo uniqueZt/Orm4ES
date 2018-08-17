@@ -20,8 +20,6 @@ public class XmlConfigSettingsParser extends AbstractXmlConfigParser{
 
     private final static Logger LOGGER = LoggerFactory.getLogger(XmlConfigSettingsParser.class);
 
-    private NamespaceSettings namespaceSettings = new NamespaceSettings();
-
     private final static String namespace = "namespace";
 
     private final static String mappingpath = "path";
@@ -33,11 +31,13 @@ public class XmlConfigSettingsParser extends AbstractXmlConfigParser{
     @Override
     public void startDocument() throws SAXException {
         super.startDocument();
+        LOGGER.debug("start parse setting file");
     }
 
     @Override
     public void endDocument() throws SAXException {
         super.endDocument();
+        LOGGER.debug("setting file parse end");
     }
 
     @Override
@@ -64,12 +64,18 @@ public class XmlConfigSettingsParser extends AbstractXmlConfigParser{
             Class clazz = Class.forName(mappingName);
             Namespace namespace = new Namespace();
             namespace.setNamespaceClass(clazz);
-            namespaceSettings.getNamespaceMap().put(mappingName,namespace);
+            NamespaceSettings.getInstance.getNamespaceMap().put(mappingName,namespace);
         }catch (ClassNotFoundException e){
             LOGGER.error(e.getMessage());
             throw new ConfigException("namespace配置有误："+mappingName+"没有找到对应类");
         }
     }
 
+    public List<KeyValuePair> getMappingPathsAndNames() {
+        return mappingPathsAndNames;
+    }
 
+    public void setMappingPathsAndNames(List<KeyValuePair> mappingPathsAndNames) {
+        this.mappingPathsAndNames = mappingPathsAndNames;
+    }
 }

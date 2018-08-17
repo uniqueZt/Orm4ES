@@ -12,14 +12,6 @@ import java.util.List;
  */
 public class MapTypeMapper extends Mapper {
 
-    //存放多个映射属性
-    private List<Attributes> attributes = new LinkedList<Attributes>();
+    public final static String MAP = "map";
 
-    public List<Attributes> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(List<Attributes> attributes) {
-        this.attributes = attributes;
-    }
 }

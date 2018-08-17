@@ -8,6 +8,13 @@ import java.util.List;
  * 主要用来存放多个字段的对应关系，以及真实的类
  */
 public abstract class Mapper {
+
+    public final static String ATTRIBUTE = "attribute";
+
+    public final static String CLASS = "class";
+
+    public final static String NAME = "name";
+
     private Class<?> mapperClass;//标识mapper映射的类
 
     public Class<?> getMapperClass() {

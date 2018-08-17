@@ -3,13 +3,19 @@ package com.framework.db.core.model.operate;
 /**
  * Created by zhangteng on 2018/8/17.
  */
-public class SelectTypeOperate{
+public class SelectTypeOperate extends Operate{
+
+    public static final long defaultSelectSize = 200L;
+
+    public static final long defaultScrollTIme = 1;
 
     private String index;
 
     private String type;
 
     private boolean isScroll;
+
+    private long size;
 
     private long scrollTime;
 
@@ -43,5 +49,13 @@ public class SelectTypeOperate{
 
     public void setScrollTime(long scrollTime) {
         this.scrollTime = scrollTime;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
     }
 }

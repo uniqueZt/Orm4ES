@@ -6,6 +6,12 @@ package com.framework.db.core.model.mapper;
  */
 public class Attributes{
 
+    public final static String PROPERTY = "property";
+
+    public final static String COLUMN = "column";
+
+    public final static String JSON = "json";
+
     //bean property
     private String property;
 

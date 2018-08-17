@@ -3,13 +3,13 @@ package com.framework.db.core.model.operate;
 /**
  * Created by zhangteng on 2018/8/17.
  */
-public class DeleteByKeyTypeOperate {
+public class DeleteByKeyTypeOperate extends Operate{
 
     private String index;
 
     private String type;
 
-    private RefreshType refreshType;
+    private RefreshType refresh;
 
     public String getIndex() {
         return index;
@@ -27,11 +27,11 @@ public class DeleteByKeyTypeOperate {
         this.type = type;
     }
 
-    public RefreshType getRefreshType() {
-        return refreshType;
+    public RefreshType getRefresh() {
+        return refresh;
     }
 
-    public void setRefreshType(RefreshType refreshType) {
-        this.refreshType = refreshType;
+    public void setRefresh(RefreshType refresh) {
+        this.refresh = refresh;
     }
 }

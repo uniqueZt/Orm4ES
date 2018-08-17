@@ -19,7 +19,7 @@ public class CommonTypeMapper extends Mapper {
         return attributes;
     }
 
-    public void setAttributes(List<Attributes> attributes) {
-        this.attributes = attributes;
+    public void addAttribute(Attributes attribute){
+        attributes.add(attribute);
     }
 }
