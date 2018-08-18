@@ -64,7 +64,7 @@ public class XmlConfigSettingsParser extends AbstractXmlConfigParser{
             Class clazz = Class.forName(mappingName);
             Namespace namespace = new Namespace();
             namespace.setNamespaceClass(clazz);
-            NamespaceSettings.getInstance.getNamespaceMap().put(mappingName,namespace);
+            NamespaceSettings.getInstance().getNamespaceMap().put(mappingName,namespace);
         }catch (ClassNotFoundException e){
             LOGGER.error(e.getMessage());
             throw new ConfigException("namespace配置有误："+mappingName+"没有找到对应类");

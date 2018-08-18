@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config xmlns="http://www.w3schools.com"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.w3schools.com ">
+    <mapper name="bean1" class="DemoBean">
+        <attribute property="logId" column="log_id"/>
+        <attribute property="logContent" column="log_content"/>
+        <attribute property="actionName" column="action_name"/>
+        <attribute property="createTime" column="create_time"/>
+    </mapper>
+
+    <insert id="insertTest" index="log_info" type="log" refresh="none" parameter="bean1"/>
+
+    <update-by-key id="updateTest" index="log_info" type="log" refresh="none" parameter="bean1"/>
+
+    <delete-by-key id="deleteTest" index="log_info" type="log" refresh="wait-util"/>
+
+    <delete-by-query id="deleteQueryTest" index="log_info" type="log"/>
+
+    <select id="seletTest1" index="log_info" type="log" size="100" result="bean1"/>
+
+    <select id="selectTest2" index="log_info" type="log" scroll="scroll" time="1" size="1000" result="map"/>
+
+    <sql-select id="sqlSelectTest" result="bean1">
+        select *
+        from log_info.log
+        where action_name like '%123%'
+    </sql-select>
+</config>

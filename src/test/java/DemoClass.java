@@ -1,3 +1,5 @@
+import com.framework.db.core.model.namespace.NamespaceSettings;
+import com.framework.db.core.parse.xml.XmlConfigParser;
 import com.framework.db.core.parse.xml.XmlConfigSettingsParser;
 
 /**
@@ -6,8 +8,10 @@ import com.framework.db.core.parse.xml.XmlConfigSettingsParser;
 public class DemoClass {
 
     public static void main(String[] args) throws Exception{
-        XmlConfigSettingsParser xmlConfigSettingsParser = new XmlConfigSettingsParser();
-        xmlConfigSettingsParser.parseXmlFile("classpath:test/es_setting.xml");
-        System.out.println(xmlConfigSettingsParser);
+        XmlConfigParser xmlConfigParser = new XmlConfigParser();
+        xmlConfigParser.setSettingPath("classpath:test/es_setting.xml");
+        xmlConfigParser.parse();
+        NamespaceSettings namespaceSettings = NamespaceSettings.getInstance();
+        System.out.println(namespaceSettings);
     }
 }

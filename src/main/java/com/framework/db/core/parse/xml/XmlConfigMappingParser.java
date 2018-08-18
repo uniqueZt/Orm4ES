@@ -264,4 +264,8 @@ public class XmlConfigMappingParser extends AbstractXmlConfigParser{
     public void parseXmlFile() throws Exception{
         parseXmlFile(this.configPath);
     }
+
+    public Namespace getNamespace() {
+        return namespace;
+    }
 }

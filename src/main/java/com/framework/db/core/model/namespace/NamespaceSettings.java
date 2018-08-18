@@ -20,7 +20,9 @@ public class NamespaceSettings {
         return namespaceMap;
     }
 
-    public static NamespaceSettings getInstance;
+    public static NamespaceSettings getInstance(){
+        return instance;
+    }
 
 
 }
