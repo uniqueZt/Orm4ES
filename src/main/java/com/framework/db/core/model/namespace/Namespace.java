@@ -9,19 +9,19 @@ import java.util.Map;
 /**
  * Created by zhangteng on 2018/8/17.
  */
-public class Namespace {
+public class Namespace<T> {
 
-    private Class<?> namespaceClass;
+    private Class<T> namespaceClass;
 
-    private Map<String,Operate> operateMap = new HashMap<String, Operate>();
+    private Map<String,Operate> operateMap = new HashMap<>();
 
-    private Map<String,Mapper> mapperMap = new HashMap<String, Mapper>();
+    private Map<String,Mapper> mapperMap = new HashMap<>();
 
-    public Class<?> getNamespaceClass() {
+    public Class<T> getNamespaceClass() {
         return namespaceClass;
     }
 
-    public void setNamespaceClass(Class<?> namespaceClass) {
+    public void setNamespaceClass(Class<T> namespaceClass) {
         this.namespaceClass = namespaceClass;
     }
 

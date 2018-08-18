@@ -17,7 +17,7 @@
 
     <delete-by-query id="deleteQueryTest" index="log_info" type="log"/>
 
-    <select id="seletTest1" index="log_info" type="log" size="100" result="bean1"/>
+    <select id="selectTest1" index="log_info" type="log" size="100" result="bean1"/>
 
     <select id="selectTest2" index="log_info" type="log" scroll="scroll" time="1" size="1000" result="map"/>
 

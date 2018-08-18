@@ -1,3 +1,6 @@
+import com.framework.db.core.parse.annotation.parameter.Key;
+import com.framework.db.core.parse.annotation.parameter.Parameter;
+import com.framework.db.core.parse.annotation.parameter.Query;
 import org.elasticsearch.index.query.QueryBuilder;
 
 import java.util.List;
@@ -8,18 +11,18 @@ import java.util.Map;
  */
 public interface DemoMapper {
 
-    void insertTest(DemoBean demoBean);
+    void insertTest(@Key String key, @Parameter DemoBean demoBean);
 
-    void udateTest(DemoBean demoBean);
+    void updateTest(@Key String key, @Parameter DemoBean demoBean);
 
-    void deleteTest(String key);
+    void deleteTest(@Key String key);
 
-    void deleteQueryTest(QueryBuilder queryBuilder);
+    void deleteQueryTest(@Query QueryBuilder queryBuilder);
 
-    List<DemoBean> selectTest1(QueryBuilder queryBuilder);
+    List<DemoBean> selectTest1(@Query QueryBuilder queryBuilder);
 
-    List<Map<String,Object>> selectTest2(QueryBuilder queryBuilder);
+    List<Map<String,Object>> selectTest2(@Query QueryBuilder queryBuilder);
 
-    List<DemoBean> sqlSelectTest();
+    List<DemoBean> sqlSelectTest(@Parameter(value = "testName") String testName,DemoBean demoBean);
 
 }
