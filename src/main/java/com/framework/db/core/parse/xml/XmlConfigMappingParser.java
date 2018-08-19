@@ -247,10 +247,42 @@ public class XmlConfigMappingParser extends AbstractXmlConfigParser{
             if(formatSqlBuilder.length() == 0){
                 throw new ConfigException("sql-select类操作sql不能配置为空");
             }
-            tempSqlSelectTypeOperate.setFormatSql(formatSqlBuilder.toString());
+            String originSql = formatSqlBuilder.toString();
+            tempSqlSelectTypeOperate.setFormatSql(originSql);
+            SqlSelectTypeOperate.SqlWithParamterBuilder sqlWithParamterBuilder = parseParamSql(originSql);
+            tempSqlSelectTypeOperate.setSqlWithParamterBuilder(sqlWithParamterBuilder);
             formatSqlBuilder = null;
             tempSqlSelectTypeOperate = null;
         }
+    }
+
+    private SqlSelectTypeOperate.SqlWithParamterBuilder parseParamSql(String originSql){
+        originSql = originSql.replace("!=","<>");
+        SqlSelectTypeOperate.SqlWithParamterBuilder sqlWithParamterBuilder = new SqlSelectTypeOperate.SqlWithParamterBuilder();
+        int startIndex = -1;
+        int endIndex = -1;
+        char[] sqlCharArray = originSql.toCharArray();
+        StringBuilder tempBuilder = new StringBuilder();
+        boolean flag = false;
+        for(int i=0;i<sqlCharArray.length;i++){
+            if(sqlCharArray[i] == SqlSelectTypeOperate.SqlWithParamterBuilder.OPEN){
+                sqlWithParamterBuilder.appendSqlSegment(tempBuilder.toString());
+                tempBuilder = new StringBuilder();
+                startIndex = i;
+                flag = true;
+            }else if(sqlCharArray[i] == SqlSelectTypeOperate.SqlWithParamterBuilder.CLOSE){
+                endIndex = i;
+                String paramName = new String(sqlCharArray,startIndex+1,endIndex - startIndex -1);
+                sqlWithParamterBuilder.appendParameter(paramName);
+                flag = false;
+            }else{
+                if(!flag){
+                    tempBuilder.append(sqlCharArray[i]);
+                }
+            }
+        }
+        sqlWithParamterBuilder.appendSqlSegment(tempBuilder.toString());
+        return sqlWithParamterBuilder;
     }
 
     @Override

@@ -24,6 +24,6 @@
     <sql-select id="sqlSelectTest" result="bean1">
         select *
         from log_info.log
-        where action_name like '%123%'
+        where action_name = {action_name} and log_content != {logContent}
     </sql-select>
 </config>

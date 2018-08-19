@@ -51,6 +51,9 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         SqlSelectTypeOperate sqlSelectTypeOperate = (SqlSelectTypeOperate)namespace.getOperateMap().get(mappingId);
         Mapper mapper = namespace.getMapperMap().get(sqlSelectTypeOperate.getResultName());
         SqlSelectTypeParam sqlSelectTypeParam = ParamUtils.parseSqlSelectTypeParam(method,objects);
+        if(sqlSelectTypeParam.getParams().keySet().size() < sqlSelectTypeOperate.getParamSize()){
+            throw new ExecuteException("传入的参数个数不能少于sql配置的参数");
+        }
         return elasticSearchCallSupport.sqlSelect(sqlSelectTypeParam.getParams(),sqlSelectTypeOperate,mapper);
     }
 
