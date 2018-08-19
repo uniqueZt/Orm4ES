@@ -22,4 +22,12 @@ public class DemoService {
         List<Map<String,Object>> result2 = demoMapper.selectTest2(QueryBuilders.termQuery("3test","678"));
         List<DemoBean> result3 = demoMapper.sqlSelectTest("12345",new DemoBean());
     }
+
+    public void testInsert(String key,DemoBean demoBean){
+        demoMapper.insertTest(key,demoBean);
+    }
+
+    public void testUpdate(String key,DemoBean demoBean){
+        demoMapper.updateTest(key,demoBean);
+    }
 }

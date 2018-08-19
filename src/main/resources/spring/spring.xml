@@ -5,7 +5,7 @@
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
 
     <bean class="com.framework.db.core.automation.ElasticsearchCallSupportFactoryBean">
-
+        <property name="restHighLevelClient" ref="elasticsearchClient"/>
     </bean>
 
 
@@ -15,6 +15,12 @@
     </bean>
 
     <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
+
+    <bean id="elasticsearchClient" class = "com.framework.db.core.client.SimpleRestClientFactorybean">
+        <property name="host" value="127.0.0.1"/>
+        <property name="port" value="9200"/>
+        <property name="schema" value="http"/>
+    </bean>
 
     <bean class="DemoService">
 

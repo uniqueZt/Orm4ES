@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public interface ElasticSearchCallSupport {
 
-    void insert(Object paramter, InsertTypeOperate insertTypeOperate, CommonTypeMapper commonTypeMapper);
+    String insert(Object paramter, InsertTypeOperate insertTypeOperate, CommonTypeMapper commonTypeMapper);
 
     void insert(String key,Object parameter,InsertTypeOperate insertTypeOperate,CommonTypeMapper commonTypeMapper);
 
