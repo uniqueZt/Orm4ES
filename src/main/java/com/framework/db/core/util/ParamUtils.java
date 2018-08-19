@@ -1,6 +1,7 @@
 package com.framework.db.core.util;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.framework.db.core.exception.ExecuteException;
 import com.framework.db.core.exception.ParamParseExcetion;
 import com.framework.db.core.model.mapper.Attributes;
@@ -12,9 +13,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.util.StringUtils;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.*;
 
 /**
@@ -34,6 +33,80 @@ public class ParamUtils {
         leafSet.add(Short.class);
         leafSet.add(Collection.class);
         leafSet.add(Map.class);
+    }
+
+    private static Class getListType(Field field) throws Exception{
+        Type fieldType = field.getGenericType();
+        if(ParameterizedType.class.isAssignableFrom(fieldType.getClass())){
+            for(Type t:((ParameterizedType)fieldType).getActualTypeArguments()){
+                return Class.forName(t.getTypeName());
+            }
+        }
+        return null;
+    }
+
+    public static JSONObject parseOriginResultToJSON(Map<String,Object> originResult){
+        JSONObject result = new JSONObject();
+        for(Map.Entry<String,Object> entry:originResult.entrySet()){
+            result.put(entry.getKey(),entry.getValue());
+        }
+        return result;
+    }
+
+    public static <T> T parseOrginResultToBean(Map<String,Object> originResult,Class<T> clazz,List<Attributes> attributes) throws Exception{
+        T result = (T)clazz.newInstance();
+        for(Attributes attribute:attributes){
+            Object readValue = originResult.get(attribute.getColumn());
+            if(null != readValue){
+                String[] nestedProperties = attribute.getProperty().split("\\.");
+                if(nestedProperties.length == 1){
+                    Field field = findField(clazz,nestedProperties[0]);
+                    if(null != field){
+                        field.setAccessible(true);
+                        if(attribute.isJson()){
+                            if(List.class.isAssignableFrom(field.getType())){
+                                readValue = JSON.parseArray((String)readValue,getListType(field));
+                            }else{
+                                readValue = JSON.parseObject((String)readValue,field.getType());
+                            }
+                        }
+                        field.set(result,readValue);
+                    }
+                }else{
+                    Object nestedOuterBean = result;
+                    Class nestedOuterClass = clazz;
+                    Object nestedInnerBean = null;
+                    for(int i=0;i< nestedProperties.length;i++){
+                        Field field = findField(nestedOuterClass,nestedProperties[i]);
+                        field.setAccessible(true);
+                        nestedInnerBean = field.get(nestedOuterBean);
+                        if(nestedInnerBean == null){
+                            if(i != nestedProperties.length -1){
+                                nestedInnerBean = field.getType().newInstance();
+                            }else{
+                                if(attribute.isJson()){
+                                    if(List.class.isAssignableFrom(field.getType())){
+                                        readValue = JSON.parseArray((String)readValue,getListType(field));
+                                    }else{
+                                        readValue = JSON.parseObject((String)readValue,field.getType());
+                                    }
+                                }
+                                nestedInnerBean = readValue;
+                            }
+                            field.set(nestedOuterBean,nestedInnerBean);
+                        }
+                        nestedOuterBean = nestedInnerBean;
+                        nestedOuterClass = nestedInnerBean.getClass();
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Field findField(Class clazz,String fieldName){
+        Map<String,Field> fieldMap = getFieldMapOfBean(clazz);
+        return fieldMap.get(fieldName);
     }
 
     public static boolean isLeaf(Map<String,Attributes> attributesMap,String fieldName,Class instanceClass){
@@ -161,6 +234,19 @@ public class ParamUtils {
             tempClass = tempClass.getSuperclass();
         }
         return fields;
+    }
+
+    private static Map<String,Field> getFieldMapOfBean(Class clazz){
+        Map<String,Field> fieldMap = new HashMap<>();
+        Class tempClass = clazz;
+        while(tempClass != null && !tempClass.getName().equals("java.lang.Object")){
+            Field[] tempFields = tempClass.getDeclaredFields();
+            for(Field tempField:tempFields){
+                fieldMap.put(tempField.getName(),tempField);
+            }
+            tempClass = tempClass.getSuperclass();
+        }
+        return fieldMap;
     }
 
     public static InsertTypeParam parseInsertTypeParam(Method method,Object[] objects){

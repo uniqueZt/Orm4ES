@@ -42,4 +42,14 @@ public class DemoBean {
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
+
+    @Override
+    public String toString() {
+        return "DemoBean{" +
+                "logId='" + logId + '\'' +
+                ", logContent='" + logContent + '\'' +
+                ", actionName='" + actionName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                '}';
+    }
 }

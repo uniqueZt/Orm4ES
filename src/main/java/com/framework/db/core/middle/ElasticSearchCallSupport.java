@@ -24,8 +24,8 @@ public interface ElasticSearchCallSupport {
 
     void deleteByQuery(QueryBuilder queryBuilder, DeleteByQueryTypeOperate deleteByQueryTypeOperate);
 
-    List<?> select(QueryBuilder queryBuilder, SelectTypeOperate selectTypeOperate, Mapper resultMapper);
+    List select(QueryBuilder queryBuilder, SelectTypeOperate selectTypeOperate, Mapper resultMapper);
 
-    List<?> sqlSelect(Map<String,Object> paramter, SqlSelectTypeOperate sqlSelectTypeOperate, Mapper resultMapper);
+    List sqlSelect(Map<String,Object> paramter, SqlSelectTypeOperate sqlSelectTypeOperate, Mapper resultMapper);
 
 }

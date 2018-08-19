@@ -3,11 +3,14 @@ package com.framework.db.core.middle.impl;
 import com.framework.db.core.exception.ExecuteException;
 import com.framework.db.core.middle.ElasticSearchCallSupport;
 import com.framework.db.core.model.mapper.CommonTypeMapper;
+import com.framework.db.core.model.mapper.JsonTypeMapper;
+import com.framework.db.core.model.mapper.MapTypeMapper;
 import com.framework.db.core.model.mapper.Mapper;
 import com.framework.db.core.model.operate.*;
 import com.framework.db.core.util.ParamUtils;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.*;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
@@ -18,9 +21,16 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.Scroll;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -113,12 +123,102 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
     }
 
     @Override
-    public List<?> select(QueryBuilder queryBuilder, SelectTypeOperate selectTypeOperate, Mapper resultMapper) {
-        return null;
+    public List select(QueryBuilder queryBuilder, SelectTypeOperate selectTypeOperate, Mapper resultMapper) {
+        List result = null;
+        if(selectTypeOperate.isScroll()){
+            result = selectScroll(queryBuilder,selectTypeOperate,resultMapper);
+        }else{
+            result = selectCommon(queryBuilder,selectTypeOperate,resultMapper);
+        }
+        return result;
+    }
+
+    private  List selectScroll(QueryBuilder queryBuilder,SelectTypeOperate selectTypeOperate,Mapper resultMapper){
+        Scroll scroll = new Scroll(TimeValue.timeValueSeconds(selectTypeOperate.getScrollTime()));
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.scroll(scroll);
+        searchRequest.indices(selectTypeOperate.getIndex());
+        if(!StringUtils.isEmpty(selectTypeOperate.getType())){
+            searchRequest.types(selectTypeOperate.getType());
+        }
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(queryBuilder).size((int)selectTypeOperate.getSize());
+        String scrollId = null;
+        try{
+            SearchResponse searchResponse = getRestHighLevelClient().search(searchRequest);
+            scrollId = searchResponse.getScrollId();
+            SearchHits searchHits = searchResponse.getHits();
+            SearchHit[] searchHitArr = searchHits.getHits();
+            List result = new LinkedList<>();
+            while(null != searchHitArr && searchHitArr.length >0){
+                for(SearchHit searchHit:searchHitArr){
+                    assembleResult(result,resultMapper,searchHit.getSourceAsMap());
+                }
+                SearchScrollRequest scrollRequest = new SearchScrollRequest(scrollId);
+                scrollRequest.scroll(scroll);
+                searchResponse = getRestHighLevelClient().searchScroll(scrollRequest);
+                scrollId = searchResponse.getScrollId();
+                searchHitArr = searchResponse.getHits().getHits();
+            }
+            return result;
+        }catch (Exception e){
+            throw new ExecuteException("scroll查询失败");
+        }finally {
+            if(null != scrollId){
+                ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
+                clearScrollRequest.addScrollId(scrollId);
+                try{
+                     ClearScrollResponse clearScrollResponse = getRestHighLevelClient().clearScroll(clearScrollRequest);
+                }catch (IOException e){
+                    throw new ExecuteException("scroll清除状态失败",e);
+                }
+            }
+        }
+    }
+
+    private  List selectCommon(QueryBuilder queryBuilder, SelectTypeOperate selectTypeOperate, Mapper resultMapper) {
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices(selectTypeOperate.getIndex());
+        if(!StringUtils.isEmpty(selectTypeOperate.getType())){
+            searchRequest.types(selectTypeOperate.getType());
+        }
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(queryBuilder);
+        searchSourceBuilder.size((int)selectTypeOperate.getSize());
+        searchRequest.source(searchSourceBuilder);
+        try{
+            SearchResponse searchResponse = getRestHighLevelClient().search(searchRequest);
+            List result = new LinkedList<>();
+            SearchHits searchHits = searchResponse.getHits();
+            if(searchHits.totalHits > 0){
+                for(SearchHit searchHit:searchHits.getHits()){
+                    Map<String,Object> sourceMap = searchHit.getSourceAsMap();
+                    assembleResult(result,resultMapper,sourceMap);
+                }
+                return result;
+            }
+        }catch (IOException e){
+            throw new ExecuteException("发生IO错误",e);
+        }catch (Exception e){
+            throw new ExecuteException("框架错误",e);
+        }
+        return new LinkedList<>();
+    }
+
+    private void assembleResult(List result,Mapper resultMapper,Map<String,Object> sourceMap) throws Exception{
+        if(resultMapper instanceof MapTypeMapper){
+            result.add(sourceMap);
+        }else if(resultMapper instanceof JsonTypeMapper){
+            result.add(ParamUtils.parseOriginResultToJSON(sourceMap));
+        }else if(resultMapper instanceof CommonTypeMapper){
+            result.add(ParamUtils.parseOrginResultToBean(sourceMap,resultMapper.getMapperClass(),((CommonTypeMapper)resultMapper).getAttributes()));
+        }else{
+            throw new ExecuteException("没有明确解析结果模型");
+        }
     }
 
     @Override
-    public List<?> sqlSelect(Map<String, Object> paramter, SqlSelectTypeOperate sqlSelectTypeOperate, Mapper resultMapper) {
+    public List sqlSelect(Map<String, Object> paramter, SqlSelectTypeOperate sqlSelectTypeOperate, Mapper resultMapper) {
         return null;
     }
 

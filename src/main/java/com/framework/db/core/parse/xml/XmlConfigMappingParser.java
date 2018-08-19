@@ -47,6 +47,9 @@ public class XmlConfigMappingParser extends AbstractXmlConfigParser{
     public XmlConfigMappingParser(String configPath, Namespace namespace) {
         this.configPath = configPath;
         this.namespace = namespace;
+        //初始化内置mapper
+        namespace.getMapperMap().put(MapTypeMapper.MAP,new MapTypeMapper());
+        namespace.getMapperMap().put(JsonTypeMapper.JSON,new JsonTypeMapper());
     }
 
     @Override

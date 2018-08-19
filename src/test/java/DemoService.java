@@ -30,4 +30,14 @@ public class DemoService {
     public void testUpdate(String key,DemoBean demoBean){
         demoMapper.updateTest(key,demoBean);
     }
+
+    public List<DemoBean> testSelect1(){
+        QueryBuilder queryBuilder = QueryBuilders.matchAllQuery();
+        return demoMapper.selectTest1(queryBuilder);
+    }
+
+    public List<Map<String,Object>> testSelect2(){
+        QueryBuilder queryBuilder = QueryBuilders.matchAllQuery();
+        return demoMapper.selectTest2(queryBuilder);
+    }
 }
