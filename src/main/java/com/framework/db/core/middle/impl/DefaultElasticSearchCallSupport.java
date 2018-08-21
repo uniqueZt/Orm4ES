@@ -7,7 +7,9 @@ import com.framework.db.core.model.mapper.JsonTypeMapper;
 import com.framework.db.core.model.mapper.MapTypeMapper;
 import com.framework.db.core.model.mapper.Mapper;
 import com.framework.db.core.model.operate.*;
+import com.framework.db.core.sql.SqlQueryParser;
 import com.framework.db.core.util.ParamUtils;
+import com.framework.db.core.util.SqlParserUtils;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.*;
@@ -219,7 +221,15 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
 
     @Override
     public List sqlSelect(Map<String, Object> paramter, SqlSelectTypeOperate sqlSelectTypeOperate, Mapper resultMapper) {
-        return null;
+        String sql = sqlSelectTypeOperate.buildSql(paramter);
+        try{
+            SqlQueryParser sqlQueryParser =  SqlParserUtils.parseSqlExprParser(sql);
+            SearchRequest searchRequest = sqlQueryParser.buildSearchRequest();
+            SearchResponse searchResponse = getRestHighLevelClient().search(searchRequest);
+            return sqlQueryParser.getSqlResult(searchResponse,resultMapper);
+        }catch (Exception e){
+            throw new ExecuteException("sql查询失败");
+        }
     }
 
     public DefaultElasticSearchCallSupport setRestHighLevelClient(RestHighLevelClient restHighLevelClient) {

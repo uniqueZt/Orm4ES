@@ -26,7 +26,7 @@ public class XmlConfigParser {
            List<KeyValuePair> mappingConfigs = xmlConfigSettingsParser.getMappingPathsAndNames();
            for(KeyValuePair keyValuePair:mappingConfigs){
                Namespace namespace = NamespaceSettings.getInstance().getNamespaceMap().get(keyValuePair.getKey());
-               XmlConfigMappingParser xmlConfigMappingParser = new XmlConfigMappingParser(keyValuePair.getValue(),namespace);
+               XmlConfigMappingParser xmlConfigMappingParser = new XmlConfigMappingParser(keyValuePair.getValue().toString(),namespace);
                xmlConfigMappingParser.parseXmlFile();
            }
         }catch (Exception e){
