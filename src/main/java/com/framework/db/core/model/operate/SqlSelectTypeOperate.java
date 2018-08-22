@@ -58,7 +58,12 @@ public class SqlSelectTypeOperate extends Operate{
             StringBuilder sqlBuilder = new StringBuilder();
             for(SqlSegment sqlSegment:sqlSegments){
                 if(sqlSegment.isParamter()){
-                    sqlBuilder.append(parameters.get(sqlSegment.getValue()));
+                    Object parameter = parameters.get(sqlSegment.getValue());
+                    if(parameter instanceof  String){
+                        sqlBuilder.append("'"+parameter.toString()+"'");
+                    }else{
+                        sqlBuilder.append(parameter);
+                    }
                 }else{
                     sqlBuilder.append(sqlSegment.getValue());
                 }
@@ -95,6 +100,6 @@ public class SqlSelectTypeOperate extends Operate{
     }
 
     public String buildSql(Map<String,Object> parameters){
-        return sqlWithParamterBuilder.toString();
+        return sqlWithParamterBuilder.buildSql(parameters);
     }
 }

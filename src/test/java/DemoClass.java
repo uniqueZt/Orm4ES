@@ -24,12 +24,14 @@ public class DemoClass {
         //demoService.testInsert("12345",demoBean);
         demoBean.setLogContent("测试update");
         //demoService.testUpdate("786",demoBean);
-        List<DemoBean> result1 = demoService.testSelect1();
-        for(DemoBean demoBean1:result1){
-            System.out.println(demoBean1.getLogId()+","+demoBean1.getActionName()+","+demoBean1.getCreateTime()+","+demoBean1.getLogContent());
-        }
-        List<Map<String,Object>> result2 = demoService.testSelect2();
-        System.out.println(result2);
+//        List<DemoBean> result1 = demoService.testSelect1();
+//        for(DemoBean demoBean1:result1){
+//            System.out.println(demoBean1.getLogId()+","+demoBean1.getActionName()+","+demoBean1.getCreateTime()+","+demoBean1.getLogContent());
+//        }
+//        List<Map<String,Object>> result2 = demoService.testSelect2();
+        //System.out.println(result2);
+
+        System.out.println(demoService.testSqlSelect("insertTest"));
         System.out.println(123);
     }
 }

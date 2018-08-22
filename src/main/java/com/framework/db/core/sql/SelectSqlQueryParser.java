@@ -28,6 +28,7 @@ public class SelectSqlQueryParser extends AbstractSqlQueryParser {
     public SearchRequest buildSearchRequest(){
         SearchRequest searchRequest = initSearchRequest();
         try{
+            setFieldMappingAlias(select);
             setWhere(searchRequest,select.getWhere());
             setSort(searchRequest,select.getOrderBys());
             setLimit(searchRequest,select.getOffset(),select.getRowCount());

@@ -21,9 +21,15 @@
 
     <select id="selectTest2" index="log_info" type="log" scroll="scroll" time="20000" size="1000" result="map"/>
 
-    <sql-select id="sqlSelectTest" result="bean1">
-        select *
+    <sql-select id="sqlSelectTest" result="map">
+        select action_name as acName,log_id as logId,log_content
         from log_info.log
-        where action_name = {action_name} and log_content != {logContent}
+        where action_name = {actionName}
+    </sql-select>
+
+    <sql-select id="sqlSelectTest2" result="map">
+        select log_id as logId,count(action_name) as actionCount
+        from log_info.log
+        group by log_id
     </sql-select>
 </config>

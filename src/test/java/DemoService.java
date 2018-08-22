@@ -20,7 +20,7 @@ public class DemoService {
         demoMapper.deleteQueryTest(QueryBuilders.termQuery("1test","123"));
         List<DemoBean> result1 = demoMapper.selectTest1(QueryBuilders.termQuery("2test","456"));
         List<Map<String,Object>> result2 = demoMapper.selectTest2(QueryBuilders.termQuery("3test","678"));
-        List<DemoBean> result3 = demoMapper.sqlSelectTest("12345",new DemoBean());
+        List<DemoBean> result3 = demoMapper.sqlSelectTest("12345");
     }
 
     public void testInsert(String key,DemoBean demoBean){
@@ -39,5 +39,13 @@ public class DemoService {
     public List<Map<String,Object>> testSelect2(){
         QueryBuilder queryBuilder = QueryBuilders.matchAllQuery();
         return demoMapper.selectTest2(queryBuilder);
+    }
+
+    public List<DemoBean> testSqlSelect(String actionName){
+       return  demoMapper.sqlSelectTest(actionName);
+    }
+
+    public List<Map<String,Object>> testSqlSelect2(){
+        return demoMapper.sqlSelectTest2();
     }
 }

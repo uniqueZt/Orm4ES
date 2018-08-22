@@ -46,7 +46,10 @@ public class AggregationSqlQueryParser extends AbstractSqlQueryParser {
     public SearchRequest buildSearchRequest() {
         SearchRequest searchRequest = initSearchRequest();
         try {
-            setWhere(searchRequest, select.getWhere());
+            setFieldMappingAlias(select);
+            if(select.getWhere() != null){
+               setWhere(searchRequest, select.getWhere());
+            }
             //setLimit(searchRequest,select.getOffset(),select.getRowCount());
             setAggregation(searchRequest, select);
             setIndicesAndTypes(searchRequest, select);
@@ -92,12 +95,19 @@ public class AggregationSqlQueryParser extends AbstractSqlQueryParser {
             for (Field field : fields) {
                 if (field instanceof MethodField) {
                     MethodField methodField = (MethodField) field;
-                    CommonAggregation commonAggregation = new CommonAggregation();
-                    commonAggregation.setAggsType(methodField.getName());
-                    commonAggregation.setAlias(methodField.getAlias());
-                    commonAggreagtions.add(commonAggregation);
-                    AggregationBuilder aggregationBuilder = getAggregationBuilder(methodField.getName(), methodField.getParams(), methodField.getAlias());
-                    preAggregationBuilder.subAggregation(aggregationBuilder);
+                    String type = methodField.getName();
+                    if(!type.equals("script")){
+                        List<KVValue> kvValues = methodField.getParams();
+                        String column = kvValues.get(0).value.toString();
+                        String key = type + "("+column+")";
+                        CommonAggregation commonAggregation = new CommonAggregation();
+                        commonAggregation.setAggsType(type);
+                        commonAggregation.setAlias(key);
+                        commonAggreagtions.add(commonAggregation);
+                        AggregationBuilder aggregationBuilder = getAggregationBuilder(type, key,column);
+                        preAggregationBuilder.subAggregation(aggregationBuilder);
+                    }
+
                 }
             }
             preAggregationTree.setCommonAggregations(commonAggreagtions);
@@ -106,20 +116,20 @@ public class AggregationSqlQueryParser extends AbstractSqlQueryParser {
         }
     }
 
-    private AggregationBuilder getAggregationBuilder(String type, List<KVValue> kvValues, String alias) {
+    private AggregationBuilder getAggregationBuilder(String type, String key,String column) {
         AggregationBuilder aggregationBuilder = null;
         if (type.equals(CommonAggregation.SUM)) {
-            aggregationBuilder = AggregationBuilders.sum(alias).field(kvValues.get(0).value.toString());
+            aggregationBuilder = AggregationBuilders.sum(key).field(column);
         } else if (type.equals(CommonAggregation.MAX)) {
-            aggregationBuilder = AggregationBuilders.max(alias).field(kvValues.get(0).value.toString());
+            aggregationBuilder = AggregationBuilders.max(key).field(column);
         } else if (type.equals(CommonAggregation.MIN)) {
-            aggregationBuilder = AggregationBuilders.min(alias).field(kvValues.get(0).value.toString());
+            aggregationBuilder = AggregationBuilders.min(key).field(column);
         } else if (type.equals(CommonAggregation.COUNT)) {
-            aggregationBuilder = AggregationBuilders.count(alias).field(kvValues.get(0).value.toString());
+            aggregationBuilder = AggregationBuilders.count(key).field(column);
         } else if (type.equals(CommonAggregation.AVG)) {
-            aggregationBuilder = AggregationBuilders.avg(alias).field(kvValues.get(0).value.toString());
+            aggregationBuilder = AggregationBuilders.avg(key).field(column);
         } else {
-            throw new ExecuteException("目前支持聚合 " + type);
+            throw new ExecuteException("目前不支持聚合 " + type);
         }
         return aggregationBuilder;
     }

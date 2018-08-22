@@ -23,6 +23,8 @@ public interface DemoMapper {
 
     List<Map<String,Object>> selectTest2(@Query QueryBuilder queryBuilder);
 
-    List<DemoBean> sqlSelectTest(@Parameter(value = "testName") String testName,DemoBean demoBean);
+    List<DemoBean> sqlSelectTest(@Parameter(value = "actionName") String testName);
+
+    List<Map<String,Object>> sqlSelectTest2();
 
 }

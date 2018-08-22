@@ -225,10 +225,12 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
         try{
             SqlQueryParser sqlQueryParser =  SqlParserUtils.parseSqlExprParser(sql);
             SearchRequest searchRequest = sqlQueryParser.buildSearchRequest();
+            System.out.println(searchRequest.toString());
+
             SearchResponse searchResponse = getRestHighLevelClient().search(searchRequest);
             return sqlQueryParser.getSqlResult(searchResponse,resultMapper);
         }catch (Exception e){
-            throw new ExecuteException("sql查询失败");
+            throw new ExecuteException("sql查询失败",e);
         }
     }
 
