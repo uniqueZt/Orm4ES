@@ -10,7 +10,7 @@ import org.springframework.beans.factory.InitializingBean;
 /**
  * Created by zhangteng on 2018/8/19.
  */
-public class SimpleRestClientFactorybean implements FactoryBean<RestClient>,InitializingBean{
+public class SimpleRestHighLevelClientFactorybean implements FactoryBean<RestHighLevelClient>,InitializingBean{
 
     private String host;
 
@@ -21,10 +21,10 @@ public class SimpleRestClientFactorybean implements FactoryBean<RestClient>,Init
     private HttpHost httpHost;
 
     @Override
-    public RestClient getObject() throws Exception {
+    public RestHighLevelClient getObject() throws Exception {
         RestClientBuilder builder = RestClient.builder(this.httpHost);
         RestClient restClient = builder.build();
-        return restClient;
+        return new RestHighLevelClient(restClient);
     }
 
     @Override

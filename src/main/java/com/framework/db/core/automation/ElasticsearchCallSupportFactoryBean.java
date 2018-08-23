@@ -2,6 +2,7 @@ package com.framework.db.core.automation;
 
 import com.framework.db.core.middle.ElasticSearchCallSupport;
 import com.framework.db.core.middle.impl.DefaultElasticSearchCallSupport;
+import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.InitializingBean;
 public class ElasticsearchCallSupportFactoryBean implements FactoryBean<ElasticSearchCallSupport>,InitializingBean {
 
     private RestHighLevelClient restHighLevelClient;
+
+    private RestClient restClient;
 
     private ElasticSearchCallSupport elasticSearchCallSupport;
 
@@ -40,10 +43,20 @@ public class ElasticsearchCallSupportFactoryBean implements FactoryBean<ElasticS
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        elasticSearchCallSupport = new DefaultElasticSearchCallSupport();
         if(restHighLevelClient != null){
-            elasticSearchCallSupport = new DefaultElasticSearchCallSupport().setRestHighLevelClient(restHighLevelClient);
-        }else{
-            elasticSearchCallSupport = new DefaultElasticSearchCallSupport();
+            ((DefaultElasticSearchCallSupport)elasticSearchCallSupport).setRestHighLevelClient(restHighLevelClient);
         }
+        if(restClient != null){
+            ((DefaultElasticSearchCallSupport)elasticSearchCallSupport).setRestClient(restClient);
+        }
+    }
+
+    public RestClient getRestClient() {
+        return restClient;
+    }
+
+    public void setRestClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 }

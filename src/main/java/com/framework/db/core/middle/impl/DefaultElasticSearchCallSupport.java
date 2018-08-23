@@ -1,5 +1,7 @@
 package com.framework.db.core.middle.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.framework.db.core.exception.ExecuteException;
 import com.framework.db.core.middle.ElasticSearchCallSupport;
 import com.framework.db.core.model.mapper.CommonTypeMapper;
@@ -10,12 +12,19 @@ import com.framework.db.core.model.operate.*;
 import com.framework.db.core.sql.SqlQueryParser;
 import com.framework.db.core.util.ParamUtils;
 import com.framework.db.core.util.SqlParserUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -32,10 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by zhangteng on 2018/8/18.
@@ -47,6 +53,8 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
     private static final long defaultRequestTimeOut = 2L;
 
     private RestHighLevelClient restHighLevelClient;
+
+    private RestClient restClient;
 
     private Long requestTimeOut;
 
@@ -116,12 +124,37 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
 
     @Override
     public void deleteByKey(String key, DeleteByKeyTypeOperate deleteByKeyTypeOperate) {
-
+        DeleteRequest deleteRequest = new DeleteRequest(deleteByKeyTypeOperate.getIndex(),deleteByKeyTypeOperate.getType(),key);
+        long finalRequestTimeOut = requestTimeOut == null?defaultRequestTimeOut:requestTimeOut;
+        deleteRequest.timeout(TimeValue.timeValueSeconds(finalRequestTimeOut));
+        deleteRequest.setRefreshPolicy(getRefreshPolicy(deleteByKeyTypeOperate.getRefresh()));
+        try{
+            DeleteResponse deleteResponse = restHighLevelClient.delete(deleteRequest);
+            if(deleteResponse.status() != RestStatus.OK || deleteResponse.status() != RestStatus.NOT_FOUND ){
+                throw new ExecuteException("删除数据出错，错误状态" + deleteResponse.status());
+            }
+        }catch (Exception e){
+            throw new ExecuteException("数据删除失败",e);
+        }
     }
 
     @Override
     public void deleteByQuery(QueryBuilder queryBuilder, DeleteByQueryTypeOperate deleteByQueryTypeOperate) {
-
+        if(restClient == null){
+            throw  new ExecuteException("没有配置restClient不支持deleteByQuery操作");
+        }
+        JSONObject object = new JSONObject();
+        object.put("query", JSON.parseObject(queryBuilder.toString()));
+        HttpEntity entity = new StringEntity(JSON.toJSONString(object), ContentType.APPLICATION_JSON);
+        try {
+            Response response = restClient.performRequest("POST", "/" + deleteByQueryTypeOperate.getIndex() + "/" + deleteByQueryTypeOperate.getType() + "/_delete_by_query", new HashMap<String, String>(), entity);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if(statusCode != 200){
+                throw new ExecuteException("删除数据请求失败,状态码"+statusCode);
+            }
+        }catch (Exception e){
+            throw new ExecuteException("删除数据失败",e);
+        }
     }
 
     @Override
@@ -241,5 +274,13 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
 
     public RestHighLevelClient getRestHighLevelClient() {
         return restHighLevelClient;
+    }
+
+    public RestClient getRestClient() {
+        return restClient;
+    }
+
+    public void setRestClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 }
