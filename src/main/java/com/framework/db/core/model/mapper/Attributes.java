@@ -12,6 +12,8 @@ public class Attributes{
 
     public final static String JSON = "json";
 
+    public final static String NESTED = "nested";
+
     //bean property
     private String property;
 
@@ -20,6 +22,9 @@ public class Attributes{
 
     //标识字段是否以json的格式存储在数据库中
     private boolean json;
+
+    //标识字段是否是嵌套字段
+    private boolean nested;
 
     public String getProperty() {
         return property;
@@ -43,5 +48,13 @@ public class Attributes{
 
     public void setJson(boolean json) {
         this.json = json;
+    }
+
+    public boolean isNested() {
+        return nested;
+    }
+
+    public void setNested(boolean nested) {
+        this.nested = nested;
     }
 }

@@ -9,7 +9,19 @@
         <attribute property="createTime" column="create_time"/>
     </mapper>
 
+    <mapper name = "bean2" class="NestedBean">
+        <attribute property="id" column="nest_id"/>
+        <attribute property="name" column="nest_name"/>
+        <attribute property="attr" column="attr" json="json"/>
+        <attribute property="bean.logId" column="nest_log_id" nested="nested"/>
+        <attribute property="bean.logContent" column="nest_log_content" nested="nested"/>
+        <attribute property="bean.actionName" column="nest_action_name" nested="nested"/>
+        <attribute property="bean.createTime" column="nest_create_time" nested="nested"/>
+    </mapper>
+
     <insert id="insertTest" index="log_info" type="log" refresh="none" parameter="bean1"/>
+
+    <insert id="insertTest2" index = "log_nested_info" type="log" refresh="none" parameter="bean2"/>
 
     <update-by-key id="updateTest" index="log_info" type="log" refresh="none" parameter="bean1"/>
 

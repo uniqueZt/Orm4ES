@@ -2,18 +2,23 @@ package com.framework.db.core.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.framework.db.core.exception.ConfigException;
 import com.framework.db.core.exception.ExecuteException;
 import com.framework.db.core.exception.ParamParseExcetion;
 import com.framework.db.core.model.mapper.Attributes;
+import com.framework.db.core.model.mapper.CommonTypeMapper;
+import com.framework.db.core.model.mapper.Mapper;
 import com.framework.db.core.model.param.*;
 import com.framework.db.core.parse.annotation.parameter.Key;
 import com.framework.db.core.parse.annotation.parameter.Query;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.nlpcn.es4sql.domain.*;
 import org.springframework.util.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -109,107 +114,165 @@ public class ParamUtils {
         return fieldMap.get(fieldName);
     }
 
-    public static boolean isLeaf(Map<String,Attributes> attributesMap,String fieldName,Class instanceClass){
-         if(leafSet.contains(instanceClass)){
+    public static boolean isLeaf(Class instanceClass){
+        if(leafSet.contains(instanceClass)){
              return true;
          }
-         for(Class clazz:leafSet){
-             if(clazz.isAssignableFrom(instanceClass)){
-                 return true;
-             }
-         }
-         if(null != attributesMap && null != fieldName){
-             Attributes attributes = attributesMap.get(fieldName);
-             if(null != attributes && attributes.isJson()){
+         for(Class clazz:leafSet) {
+             if (clazz.isAssignableFrom(instanceClass)) {
                  return true;
              }
          }
          return false;
     }
 
-    public static Map<String,Object> beanToFlatMap(Map<String,Attributes> attributesMap,Object bean){
-        Map<String,Object> result = new HashMap<>();
-        try{
-            beanToMapInternal(attributesMap,bean,null,result);
-        }catch (IllegalAccessException e){
-            throw new ExecuteException("参数解析错误",e);
+    public static Map<String,Object> beanToFlatMap(List<Attributes> attributes,Object bean,boolean isAllowNull){
+        Map<String,Object> result = new HashMap();
+        Class clazz = bean.getClass();
+        for(Attributes attribute:attributes){
+            if(!attribute.isNested()){
+                dealNonNestedProperty(clazz,attribute,bean,isAllowNull,result);
+            }else{
+                dealNestedProperty(clazz,attribute,bean,isAllowNull,result);
+            }
         }
         return result;
     }
 
-    public static Map<String,Object> beanToFlatMap(List<Attributes> attributes,Object bean){
-        Map<String,Attributes> attributesMap = new HashMap<>();
-        for(Attributes attribute:attributes){
-          attributesMap.put(attribute.getProperty(),attribute);
-        }
-        return beanToFlatMap(attributesMap,bean);
-    }
-
-    public static String getWriteParamStr( List<Attributes> attributes,Map<String,Object> flatMap){
-        Map<String,Object> writeParam = new HashMap<>();
-        for(Attributes attribute:attributes){
-            if(flatMap.containsKey(attribute.getProperty())){
-                Object writeValue = flatMap.get(attribute.getProperty());
-                if(attribute.isJson()){
-                    writeValue = JSON.toJSONString(writeValue);
-                }
-                writeParam.put(attribute.getColumn(),writeValue);
-            }
-        }
-        return JSON.toJSONString(writeParam);
-    }
-
-    public static String getWriteParamStr( List<Attributes> attributes,Map<String,Object> flatMap,XContentBuilder xContentBuilder) throws Exception{
-        Map<String,Object> writeParam = new HashMap<>();
-        xContentBuilder.startObject();
-        for(Attributes attribute:attributes){
-            if(flatMap.containsKey(attribute.getProperty())){
-                Object writeValue = flatMap.get(attribute.getProperty());
-                if(attribute.isJson()){
-                    writeValue = JSON.toJSONString(writeValue);
-                }
-                writeParam.put(attribute.getColumn(),writeValue);
-                xContentBuilder.field(attribute.getColumn(),writeValue);
-            }
-        }
-        xContentBuilder.endObject();
-        return JSON.toJSONString(writeParam);
-    }
-
-    public static String getWriteParamStr( List<Attributes> attributes,Object bean){
-        Map<String,Object> flatMap = beanToFlatMap(attributes,bean);
-        return getWriteParamStr(attributes,flatMap);
-    }
-
-    public static String getWriteParamStr(List<Attributes> attributes, Object bean, XContentBuilder xContentBuilder){
-        Map<String,Object> flatMap = beanToFlatMap(attributes,bean);
-        try{
-            return getWriteParamStr(attributes,flatMap,xContentBuilder);
-        }catch (Exception e){
-            throw new ExecuteException("参数解析失败");
-        }
-    }
-
-
-
-    private static void beanToMapInternal(Map<String,Attributes> attributesMap,Object bean,String prefix,Map<String,Object> result) throws IllegalAccessException{
+    public static Map<String,Object> beanToMap(List<Attributes> attributes,Object bean,boolean isAllowNull){
+        Map<String,Object> result = new HashMap<>();
         Class clazz = bean.getClass();
-        if(isLeaf(attributesMap,null,clazz)){
-            return;
+        for(Attributes attribute:attributes){
+            dealNonNestedProperty(clazz,attribute,bean,isAllowNull,result);
         }
-        List<Field> fields = getAllFieldOfBean(clazz);
-        for(Field field:fields){
-            field.setAccessible(true);
-            if(isLeaf(attributesMap,field.getName(),field.getType())){
-                result.put(assembleNestedFieldPrefix(prefix,field),field.get(bean));
-            }else{
-                Object fieldValue = field.get(bean);
-                if(null != fieldValue){
-                    beanToMapInternal(attributesMap,fieldValue,assembleNestedFieldPrefix(prefix,field),result);
+        return result;
+    }
+
+
+    private static Object getFielidValue(Field field, Object bean, Class clazz) throws IllegalAccessException{
+        field.setAccessible(true);
+        Object param = field.get(bean);
+        return param;
+    }
+
+    public static void dealNonNestedProperty(Class clazz,Attributes attribute,Object bean,boolean isAllowNull,Map<String,Object> result){
+        try{
+            Field field = clazz.getDeclaredField(attribute.getProperty());
+            Object param = getFielidValue(field,bean,clazz);
+            if(attribute.isJson()){
+                String paramJsonStr = param == null ? null:JSON.toJSONString(param);
+                if(isAllowNull){
+                    result.put(attribute.getColumn(),paramJsonStr);
                 }else{
-                    result.put(assembleNestedFieldPrefix(prefix,field),null);
+                    if(paramJsonStr != null){
+                        result.put(attribute.getColumn(),paramJsonStr);
+                    }
+                }
+            }else{
+                if(!isLeaf(field.getType())){
+                    throw new ExecuteException("属性不是基本类型，请检查配置");
+                }
+                if(isAllowNull){
+                    result.put(attribute.getColumn(),param);
+                }else{
+                    if(param != null){
+                        result.put(attribute.getColumn(),param);
+                    }
                 }
             }
+        }catch (NoSuchFieldException e){
+            throw new ExecuteException("属性获取失败，请检查映射",e);
+        }catch (IllegalAccessException e){
+            throw new ExecuteException("属性不可访问",e);
+        }
+    }
+
+    public static void dealNestedProperty(Class clazz,Attributes attribute,Object bean,boolean isAllowNull,Map<String,Object> result){
+        try{
+            Class currentClass = clazz;
+            Object currentBean = bean;
+            String[] properties = attribute.getProperty().split("\\.");
+            if(properties.length <=1){
+                throw new ExecuteException("property 配置不符合嵌套类型规范");
+            }
+            Object finalParam = null;
+            for(int i = 0;i<properties.length;i++){
+                Field field = currentClass.getDeclaredField(properties[i]);
+                Object param = getFielidValue(field,currentBean,currentClass);
+                if(i == properties.length - 1){
+                    finalParam = param;
+                    if(null != param){
+                       currentClass = param.getClass();
+                    }
+                }else{
+                    if(param != null){
+                        currentBean = param;
+                        currentClass = param.getClass();
+                    }else{
+                        finalParam = null;
+                    }
+                }
+            }
+            if(attribute.isJson()){
+                String paramJsonStr = finalParam == null ? null:JSON.toJSONString(finalParam);
+                if(isAllowNull){
+                    result.put(attribute.getColumn(),paramJsonStr);
+                }else{
+                    if(paramJsonStr != null){
+                        result.put(attribute.getColumn(),paramJsonStr);
+                    }
+                }
+            }else{
+                if(finalParam != null){
+                    if(!isLeaf(currentClass)){
+                        throw new ExecuteException("属性不是基本类型，请检查配置");
+                    }
+                    result.put(attribute.getColumn(),finalParam);
+                }else{
+                    if(isAllowNull){
+                        result.put(attribute.getColumn(),finalParam);
+                    }
+                }
+            }
+        }catch (NoSuchFieldException e){
+            throw new ExecuteException("属性获取失败，请检查映射",e);
+        }catch (IllegalAccessException e){
+            throw new ExecuteException("属性不可访问",e);
+        }
+    }
+
+    public static String getWriteParamStr( List<Attributes> attributes,Map<String,Object> paramMap,XContentBuilder xContentBuilder) throws Exception{
+        if(xContentBuilder != null){
+            xContentBuilder.startObject();
+            for(Map.Entry<String,Object> entry:paramMap.entrySet()){
+                xContentBuilder.field(entry.getKey(),entry.getValue());
+            }
+            xContentBuilder.endObject();
+        }
+        return JSON.toJSONString(paramMap);
+    }
+
+    public static String getWriteParamStr(boolean isAllowNull,Mapper mapper, Object bean) {
+        return getWriteParamStr(isAllowNull,mapper,bean,null);
+    }
+
+    public static String getWriteParamStr(boolean isAllowNull,Mapper mapper, Object bean, XContentBuilder xContentBuilder){
+        if(mapper instanceof CommonTypeMapper){
+            CommonTypeMapper commonTypeMapper = (CommonTypeMapper)mapper;
+            List<Attributes> attributes = commonTypeMapper.getAttributes();
+            Map<String,Object> mapping = null;
+            if(!mapper.isHaveNestedProperty()){
+                mapping = beanToMap(((CommonTypeMapper) mapper).getAttributes(),bean,isAllowNull);
+            }else{
+                mapping = beanToFlatMap(((CommonTypeMapper) mapper).getAttributes(),bean,isAllowNull);
+            }
+            try{
+                return getWriteParamStr(attributes,mapping,xContentBuilder);
+            }catch (Exception e){
+                throw new ExecuteException("参数解析失败");
+            }
+        }else{
+            throw new ConfigException("写入eagle参数，mapper不能是内置类型");
         }
     }
 

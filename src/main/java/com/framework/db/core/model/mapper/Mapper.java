@@ -15,6 +15,8 @@ public abstract class Mapper {
 
     public final static String NAME = "name";
 
+    public boolean haveNestedProperty;
+
     private Class<?> mapperClass;//标识mapper映射的类
 
     public Class<?> getMapperClass() {
@@ -23,5 +25,13 @@ public abstract class Mapper {
 
     public void setMapperClass(Class<?> mapperClass) {
         this.mapperClass = mapperClass;
+    }
+
+    public boolean isHaveNestedProperty() {
+        return haveNestedProperty;
+    }
+
+    public void setHaveNestedProperty(boolean haveNestedProperty) {
+        this.haveNestedProperty = haveNestedProperty;
     }
 }

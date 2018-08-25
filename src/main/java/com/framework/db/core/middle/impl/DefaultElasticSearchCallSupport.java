@@ -50,7 +50,7 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultElasticSearchCallSupport.class);
 
-    private static final long defaultRequestTimeOut = 2L;
+    private static final long defaultRequestTimeOut = 10L;
 
     private RestHighLevelClient restHighLevelClient;
 
@@ -67,7 +67,7 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
 
     @Override
     public void insert(String key, Object parameter, InsertTypeOperate insertTypeOperate, CommonTypeMapper commonTypeMapper) {
-         String writeParamStr = ParamUtils.getWriteParamStr(commonTypeMapper.getAttributes(),parameter);
+         String writeParamStr = ParamUtils.getWriteParamStr(false,commonTypeMapper,parameter);
          IndexRequest request = new IndexRequest(insertTypeOperate.getIndex(),insertTypeOperate.getType(),key);
          long finalRequestTimeOut = requestTimeOut == null?defaultRequestTimeOut:requestTimeOut;
          request.timeout(TimeValue.timeValueSeconds(finalRequestTimeOut));
@@ -103,7 +103,7 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
         UpdateRequest updateRequest = new UpdateRequest(updateByKeyTypeOperate.getIndex(),updateByKeyTypeOperate.getType(),key);
         try{
             XContentBuilder xContentBuilder = XContentFactory.jsonBuilder();
-            writeParamStr = ParamUtils.getWriteParamStr(commonTypeMapper.getAttributes(),parameter,xContentBuilder);
+            writeParamStr = ParamUtils.getWriteParamStr(true,commonTypeMapper,parameter,xContentBuilder);
             updateRequest.doc(xContentBuilder);
         }catch (Exception e){
             LOGGER.error("内部错误",e);

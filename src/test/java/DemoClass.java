@@ -13,6 +13,49 @@ import java.util.Map;
 public class DemoClass {
 
     public static void main(String[] args) throws Exception{
+       test3();
+    }
+
+    public static void test3() throws Exception{
+        ApplicationContext apx = new ClassPathXmlApplicationContext("classpath:spring/spring.xml");
+        DemoService demoService = apx.getBean(DemoService.class);
+        for(int i = 0;i<1;i++){
+            NestedBean nestedBean = new NestedBean();
+            nestedBean.setId(i);
+            nestedBean.setName("test"+i);
+
+            DemoBean demoBean = new DemoBean();
+            nestedBean.setBean(demoBean);
+           // nestedBean.setAttr(demoBean);
+            demoBean.setLogId(i+"");
+            demoBean.setLogContent("测试insert");
+            demoBean.setActionName("updateTest");
+            demoBean.setCreateTime(null);
+            //demoService.testInsert("12345",demoBean);
+            demoBean.setLogContent("测试update");
+            demoService.insertTest2(nestedBean);
+            System.out.println("跟新完毕");
+        }
+    }
+
+    public static void test2() throws  Exception{
+        ApplicationContext apx = new ClassPathXmlApplicationContext("classpath:spring/spring.xml");
+        DemoService demoService = apx.getBean(DemoService.class);
+        for(int i = 0;i<2;i++){
+            DemoBean demoBean = new DemoBean();
+            demoBean.setLogId(i+"");
+            demoBean.setLogContent("测试insert");
+            demoBean.setActionName("updateTest");
+            demoBean.setCreateTime(null);
+            //demoService.testInsert("12345",demoBean);
+            demoBean.setLogContent("测试update");
+            Thread.sleep(10);
+            demoService.testInsert(System.currentTimeMillis()+"",demoBean);
+        }
+        System.out.println("新增完毕");
+    }
+
+    public static void test(){
         ApplicationContext apx = new ClassPathXmlApplicationContext("classpath:spring/spring.xml");
         DemoService demoService = apx.getBean(DemoService.class);
         //demoService.test();

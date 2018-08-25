@@ -13,6 +13,8 @@ public interface DemoMapper {
 
     void insertTest(@Key String key, @Parameter DemoBean demoBean);
 
+    void insertTest2(@Key String key,@Parameter NestedBean nestedBean);
+
     void updateTest(@Key String key, @Parameter DemoBean demoBean);
 
     void deleteTest(@Key String key);

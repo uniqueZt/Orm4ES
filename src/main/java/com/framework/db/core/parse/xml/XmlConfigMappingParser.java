@@ -13,6 +13,8 @@ import org.springframework.util.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
+import java.util.List;
+
 /**
  * Created by zhangteng on 2018/8/17.
  */
@@ -208,12 +210,16 @@ public class XmlConfigMappingParser extends AbstractXmlConfigParser{
         String property = attributes.getValue(com.framework.db.core.model.mapper.Attributes.PROPERTY);
         String column = attributes.getValue(com.framework.db.core.model.mapper.Attributes.COLUMN);
         String json = attributes.getValue(com.framework.db.core.model.mapper.Attributes.JSON);
+        String nested = attributes.getValue(com.framework.db.core.model.mapper.Attributes.NESTED);
+        if(!StringUtils.isEmpty(nested)){
+            attributesOfMapper.setNested(true);
+        }
         if(StringUtils.isEmpty(property) || StringUtils.isEmpty(column)){
             throw new ConfigException("配置attribute，property和column均不能为空");
         }
         attributesOfMapper.setColumn(column);
         attributesOfMapper.setProperty(property);
-        if(StringUtils.isEmpty(json) && com.framework.db.core.model.mapper.Attributes.JSON.equals(json)){
+        if(!StringUtils.isEmpty(json) && com.framework.db.core.model.mapper.Attributes.JSON.equals(json)){
             attributesOfMapper.setJson(true);
         }
         tempCommonTypeMapper.addAttribute(attributesOfMapper);
@@ -241,6 +247,14 @@ public class XmlConfigMappingParser extends AbstractXmlConfigParser{
         if(MAPPER.equals(qName)){
             if(tempCommonTypeMapper.getAttributes().size() <= 0){
                 throw new ConfigException("mapper中的attribute不能为0");
+            }else{
+                List<com.framework.db.core.model.mapper.Attributes>  attributes = tempCommonTypeMapper.getAttributes();
+                for(com.framework.db.core.model.mapper.Attributes attribute:attributes){
+                    if(attribute.isNested()){
+                        tempCommonTypeMapper.setHaveNestedProperty(true);
+                        break;
+                    }
+                }
             }
             tempCommonTypeMapper = null;
         }else if(SQL_SELECT.equals(qName)){

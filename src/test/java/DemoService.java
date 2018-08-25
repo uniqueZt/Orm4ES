@@ -27,6 +27,11 @@ public class DemoService {
         demoMapper.insertTest(key,demoBean);
     }
 
+    public void insertTest2(NestedBean nestedBean) throws Exception{
+        Thread.sleep(10);
+        demoMapper.insertTest2(System.currentTimeMillis()+"",nestedBean);
+    }
+
     public void testUpdate(String key,DemoBean demoBean){
         demoMapper.updateTest(key,demoBean);
     }
