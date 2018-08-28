@@ -8,6 +8,7 @@ import com.framework.db.core.exception.ParamParseExcetion;
 import com.framework.db.core.model.mapper.Attributes;
 import com.framework.db.core.model.mapper.CommonTypeMapper;
 import com.framework.db.core.model.mapper.Mapper;
+import com.framework.db.core.model.operate.BatchInsertTypeOperate;
 import com.framework.db.core.model.param.*;
 import com.framework.db.core.parse.annotation.parameter.Key;
 import com.framework.db.core.parse.annotation.parameter.Query;
@@ -338,6 +339,31 @@ public class ParamUtils {
             throw new ParamParseExcetion("insert类型的操作不能没有参数");
         }
     }
+
+    public static BatchInsertTypeParam parseBatchInsertTypeParam(Method method, Object[] objects){
+        Parameter[] parameters = method.getParameters();
+        if(parameters.length > 0){
+            BatchInsertTypeParam batchInsertTypeParam = new BatchInsertTypeParam();
+            for(int i=0;i<parameters.length;i++){
+                Annotation[] parameterAnnotations = parameters[i].getDeclaredAnnotations();
+                if(parameterAnnotations.length > 0){
+                    for(Annotation annotation:parameterAnnotations){
+                        if(annotation instanceof com.framework.db.core.parse.annotation.parameter.Parameter){
+                            if(!List.class.isAssignableFrom(objects[i].getClass())){
+                                throw new ParamParseExcetion("batchInsert类型的操作的参数必须是java.util.List类型");
+                            }else{
+                                batchInsertTypeParam.setParamObjects((List)objects[i]);
+                            }
+                        }
+                    }
+                }
+            }
+            return batchInsertTypeParam;
+        }else{
+            throw new ParamParseExcetion("insert类型的操作不能没有参数");
+        }
+    }
+
 
     public static UpdateByKeyParam parseUpdateByKeyTypeParam(Method method, Object[] objects){
         Parameter[] parameters = method.getParameters();

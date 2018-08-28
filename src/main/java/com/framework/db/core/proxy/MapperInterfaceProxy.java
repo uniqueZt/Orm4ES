@@ -32,6 +32,8 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         }
         if(operate instanceof InsertTypeOperate){
             insertOperateTypeProxy(method,objects);
+        }else if(operate instanceof BatchInsertTypeOperate){
+            batchInsertOperateTypeProxy(method,objects);
         }else if(operate instanceof UpdateByKeyTypeOperate){
             updateOperateTypeProxy(method,objects);
         }else if(operate instanceof DeleteByKeyTypeOperate){
@@ -98,6 +100,17 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         }else{
             elasticSearchCallSupport.insert(insertTypeParam.getParamObject(),insertTypeOperate,commonTypeMapper);
         }
+    }
+
+    private void batchInsertOperateTypeProxy(Method method,Object[] objects){
+        String mappingId = method.getName();
+        BatchInsertTypeOperate batchInsertTypeOperate = (BatchInsertTypeOperate)namespace.getOperateMap().get(mappingId);
+        CommonTypeMapper commonTypeMapper = (CommonTypeMapper)namespace.getMapperMap().get(batchInsertTypeOperate.getParameterName());
+        BatchInsertTypeParam batchInsertTypeParam = ParamUtils.parseBatchInsertTypeParam(method,objects);
+        if(null == batchInsertTypeParam.getParamObjects()){
+            throw new ExecuteException("batchInsert操作参数不能为空");
+        }
+        elasticSearchCallSupport.batchInsert(batchInsertTypeParam.getParamObjects(),batchInsertTypeOperate,commonTypeMapper);
     }
 
     private void updateOperateTypeProxy(Method method,Object[] objects){

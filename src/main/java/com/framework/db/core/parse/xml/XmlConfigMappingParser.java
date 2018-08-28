@@ -24,6 +24,8 @@ public class XmlConfigMappingParser extends AbstractXmlConfigParser{
 
     private final static String INSERT = "insert";
 
+    private final static String BATCH_INSERT = "batch-insert";
+
     private final static String UPDATE_BY_KEY = "update-by-key";
 
     private final static String DELETE_BY_KEY = "delete-by-key";
@@ -75,6 +77,8 @@ public class XmlConfigMappingParser extends AbstractXmlConfigParser{
             parseAttributesOfMapper(attributes);
         }else if(qName.equals(INSERT)){
             parseInsertTypeOperate(attributes);
+        }else if(qName.equals(BATCH_INSERT)){
+            parseBatchInsertTypeOperate(attributes);
         }else if(qName.equals(UPDATE_BY_KEY)){
             parseUpdateByKeyTypeOperate(attributes);
         }else if(qName.equals(DELETE_BY_KEY)){
@@ -189,6 +193,23 @@ public class XmlConfigMappingParser extends AbstractXmlConfigParser{
         insertTypeOperate.setParameterName(paramter);
         insertTypeOperate.setRefresh(getRefreshType(refresh));
         namespace.getOperateMap().put(id,insertTypeOperate);
+    }
+
+    private void parseBatchInsertTypeOperate(Attributes attributes){
+        String id = attributes.getValue(Operate.ID);
+        String index = attributes.getValue(Operate.INDEX);
+        String type = attributes.getValue(Operate.TYPE);
+        String paramter = attributes.getValue(Operate.PARAMETER);
+        String refresh = attributes.getValue(Operate.REFRESH);
+        if(StringUtils.isEmpty(index) || StringUtils.isEmpty(type)|| StringUtils.isEmpty(id) || StringUtils.isEmpty(paramter)){
+            throw new ConfigException("insert类操作id,index,type,paramter属性必须配置");
+        }
+        BatchInsertTypeOperate batchInsertTypeOperate = new BatchInsertTypeOperate();
+        batchInsertTypeOperate.setIndex(index);
+        batchInsertTypeOperate.setType(type);
+        batchInsertTypeOperate.setParameterName(paramter);
+        batchInsertTypeOperate.setRefresh(getRefreshType(refresh));
+        namespace.getOperateMap().put(id,batchInsertTypeOperate);
     }
 
     private RefreshType getRefreshType(String refresh){

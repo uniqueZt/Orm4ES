@@ -16,6 +16,8 @@ public interface ElasticSearchCallSupport {
 
     String insert(Object paramter, InsertTypeOperate insertTypeOperate, CommonTypeMapper commonTypeMapper);
 
+    void batchInsert(List paramter, BatchInsertTypeOperate batchInsertTypeOperate,CommonTypeMapper commonTypeMapper);
+
     void insert(String key,Object parameter,InsertTypeOperate insertTypeOperate,CommonTypeMapper commonTypeMapper);
 
     void updateByKey(String key, Object parameter, UpdateByKeyTypeOperate updateByKeyTypeOperate,CommonTypeMapper commonTypeMapper);

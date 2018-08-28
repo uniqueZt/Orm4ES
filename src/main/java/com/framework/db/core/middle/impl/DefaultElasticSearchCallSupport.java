@@ -84,6 +84,11 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
          }
     }
 
+    @Override
+    public void batchInsert(List paramter, BatchInsertTypeOperate batchInsertTypeOperate, CommonTypeMapper commonTypeMapper) {
+        //TODO
+    }
+
     private WriteRequest.RefreshPolicy getRefreshPolicy(RefreshType refreshType){
         switch (refreshType){
             case NONE:
