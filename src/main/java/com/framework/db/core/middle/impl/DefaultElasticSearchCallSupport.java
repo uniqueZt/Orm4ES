@@ -15,6 +15,8 @@ import com.framework.db.core.util.SqlParserUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -85,8 +87,26 @@ public class DefaultElasticSearchCallSupport implements ElasticSearchCallSupport
     }
 
     @Override
-    public void batchInsert(List paramter, BatchInsertTypeOperate batchInsertTypeOperate, CommonTypeMapper commonTypeMapper) {
-        //TODO
+    public void batchInsert(List paramters, BatchInsertTypeOperate batchInsertTypeOperate, CommonTypeMapper commonTypeMapper) {
+        BulkRequest bulkRequest = new BulkRequest();
+        for(Object paramter:paramters){
+            String writeParamStr = ParamUtils.getWriteParamStr(false,commonTypeMapper,paramter);
+            IndexRequest indexRequest = new IndexRequest(batchInsertTypeOperate.getIndex(),batchInsertTypeOperate.getType());
+            indexRequest.source(writeParamStr,XContentType.JSON);
+            bulkRequest.add(indexRequest);
+        }
+        long finalBuilkRequestTimeOut = requestTimeOut == null?defaultRequestTimeOut:requestTimeOut;
+        bulkRequest.timeout(TimeValue.timeValueSeconds(finalBuilkRequestTimeOut));
+        bulkRequest.setRefreshPolicy(getRefreshPolicy(batchInsertTypeOperate.getRefresh()));
+        try{
+            BulkResponse bulkResponse = getRestHighLevelClient().bulk(bulkRequest);
+            RestStatus restStatus = bulkResponse.status();
+            if(restStatus != RestStatus.CREATED && restStatus != RestStatus.OK){
+                throw new ExecuteException("批量数据写入失败，返回状态:"+restStatus);
+            }
+        }catch (Exception e){
+            throw new ExecuteException("批量数据写入失败",e);
+        }
     }
 
     private WriteRequest.RefreshPolicy getRefreshPolicy(RefreshType refreshType){
