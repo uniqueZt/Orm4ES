@@ -43,7 +43,7 @@ captures/
 # Keystore files
 #*.jks
 #gradle wrapper
-gradle/
+gradle
 
 #some local files
 */.settings/
