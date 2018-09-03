@@ -1,6 +1,7 @@
+package com.test;
+
 import com.framework.db.core.parse.annotation.config.mapper.Attribute;
 import com.framework.db.core.parse.annotation.config.mapper.Mapper;
-import com.sun.tracing.dtrace.Attributes;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -9,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Mapper(namespace = DemoMapper.class,name = "demoBean")
 public class DemoBean {
 
-    @Autowired
+    @Attribute(column = "log_id")
     public String logId;
 
     @Attribute(column = "log_content")

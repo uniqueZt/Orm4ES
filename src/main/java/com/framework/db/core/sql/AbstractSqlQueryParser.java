@@ -16,6 +16,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.nlpcn.es4sql.domain.*;
 import org.nlpcn.es4sql.parse.ElasticSqlExprParser;
 import org.nlpcn.es4sql.query.maker.QueryMaker;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
