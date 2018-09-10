@@ -2,12 +2,11 @@ package com.test;
 
 import com.framework.db.core.parse.annotation.config.mapper.Attribute;
 import com.framework.db.core.parse.annotation.config.mapper.Mapper;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by zhangteng on 2018/8/18.
  */
-@Mapper(namespace = DemoMapper.class,name = "demoBean")
+@Mapper(namespace = DemoMapperTest.class,name = "demoBean")
 public class DemoBean {
 
     @Attribute(column = "log_id")

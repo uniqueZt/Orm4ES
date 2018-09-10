@@ -18,8 +18,7 @@ import java.util.Map;
  */
 
 @Namespace
-@Repository
-public interface DemoMapper {
+public interface DemoMapperTest {
 
     @Insert(index = "log_info",type = "log",refresh = RefreshType.NONE,parameter = "demoBean")
     void insertTest(@Key String key, @Parameter DemoBean demoBean);
@@ -41,7 +40,7 @@ public interface DemoMapper {
     @Select(index = "log_info",type = "log",result = "demoBean",size = 1000,time = 20000,scroll = true)
     List<Map<String,Object>> selectTest2(@Query QueryBuilder queryBuilder);
 
-    @SqlSelect(result = "demoBean",sql="select action_name as acName,log_id as logId,log_content\n" +
+    @SqlSelect(result = "demoBean",sql="select *\n" +
             "        from log_info.log\n" +
             "        where action_name = {actionName}")
     List<DemoBean> sqlSelectTest(@Parameter(value = "actionName") String testName);

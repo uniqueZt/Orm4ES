@@ -1,5 +1,6 @@
 package com.framework.db.core.parse.annotation.config;
 
+import com.framework.db.core.automation.MapperInterfaceFactoryBean;
 import com.framework.db.core.exception.ConfigException;
 import com.framework.db.core.model.mapper.Attributes;
 import com.framework.db.core.model.mapper.CommonTypeMapper;
@@ -10,8 +11,11 @@ import com.framework.db.core.model.operate.*;
 import com.framework.db.core.parse.annotation.config.mapper.Attribute;
 import com.framework.db.core.parse.annotation.config.mapper.Mapper;
 import com.framework.db.core.parse.annotation.config.operate.*;
+import com.framework.db.core.proxy.MapperInterfaceProxy;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
@@ -69,8 +73,25 @@ public final class AnnotationsConfigParser extends ClassPathBeanDefinitionScanne
                 e.printStackTrace();
             }
         }
+        //组装namespace
         assembleNamespaceSetting();
-        return beanDefinitionHolders;
+        NamespaceSettings namespaceSettings = NamespaceSettings.getInstance();
+        for(Map.Entry<String, com.framework.db.core.model.namespace.Namespace> entry:namespaceSettings.getNamespaceMap().entrySet()){
+            BeanDefinition beanDefinition = getBeanDefinition(entry);
+            super.getRegistry().registerBeanDefinition(entry.getKey(),beanDefinition);
+        }
+        return null;
+    }
+
+    @Override
+    protected void registerBeanDefinition(BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry) {
+        //super.registerBeanDefinition(definitionHolder, registry);
+    }
+
+    private BeanDefinition getBeanDefinition(Map.Entry<String, com.framework.db.core.model.namespace.Namespace> entry){
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MapperInterfaceFactoryBean.class);
+        beanDefinitionBuilder.addPropertyValue("mapperInterfaceProxy",new MapperInterfaceProxy<>().setNamespace(entry.getValue()));
+        return beanDefinitionBuilder.getBeanDefinition();
     }
 
     private void assembleNamespaceSetting(){
@@ -178,7 +199,7 @@ public final class AnnotationsConfigParser extends ClassPathBeanDefinitionScanne
     private InsertTypeOperate parseInsertTypeOperate(Insert insertAnnotation){
         String index = insertAnnotation.index();
         String type = insertAnnotation.type();
-        String parameter = insertAnnotation.type();
+        String parameter = insertAnnotation.parameter();
         RefreshType refreshType = insertAnnotation.refresh();
         if(StringUtils.isEmpty(index) || StringUtils.isEmpty(type) || StringUtils.isEmpty(parameter)){
             throw new ConfigException("insert类操作id,index,type,paramter属性必须配置");

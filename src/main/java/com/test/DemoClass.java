@@ -3,13 +3,24 @@ package com.test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.util.List;
+
 /**
  * Created by zhangteng on 2018/8/16.
  */
 public class DemoClass {
 
     public static void main(String[] args) throws Exception{
-       test4();
+       test5();
+    }
+
+    public static void test5() throws Exception {
+        ApplicationContext apx = new ClassPathXmlApplicationContext("classpath:spring/spring_annotation.xml");
+        DemoMapperTest demoMapperTest = apx.getBean(DemoMapperTest.class);
+        List<DemoBean> result = demoMapperTest.sqlSelectTest("insertTest");
+        for(DemoBean demoBean:result){
+           System.out.println(demoBean);
+        }
     }
 
     public static void test4() throws Exception {
@@ -39,16 +50,17 @@ public class DemoClass {
     }
 
     public static void test2() throws  Exception{
-        ApplicationContext apx = new ClassPathXmlApplicationContext("classpath:spring/spring.xml");
+       // ApplicationContext apx = new ClassPathXmlApplicationContext("classpath:spring/spring.xml");
+        ApplicationContext apx = new ClassPathXmlApplicationContext("classpath:spring/spring_annotation.xml");
         DemoService demoService = apx.getBean(DemoService.class);
-        for(int i = 0;i<2;i++){
+        for(int i = 0;i<3;i++){
             DemoBean demoBean = new DemoBean();
             demoBean.setLogId(i+"");
-            demoBean.setLogContent("测试insert");
-            demoBean.setActionName("updateTest");
+            demoBean.setLogContent("测试insert123");
+            demoBean.setActionName("updateTest123");
             demoBean.setCreateTime(null);
             //demoService.testInsert("12345",demoBean);
-            demoBean.setLogContent("测试update");
+            demoBean.setLogContent("测试update123");
             Thread.sleep(10);
             demoService.testInsert(System.currentTimeMillis()+"",demoBean);
         }

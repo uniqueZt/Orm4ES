@@ -1,6 +1,5 @@
 package com.test;
 
-import com.framework.db.core.parse.annotation.config.Namespace;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,7 @@ import java.util.Map;
 public class DemoService {
 
     @Autowired
-    private DemoMapper demoMapper;
+    private DemoMapperTest demoMapper;
 
     public void test(){
         demoMapper.insertTest("123",new DemoBean());
