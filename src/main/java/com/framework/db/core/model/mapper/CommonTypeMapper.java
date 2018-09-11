@@ -3,6 +3,7 @@ package com.framework.db.core.model.mapper;
 import com.framework.db.core.model.mapper.Attributes;
 import com.framework.db.core.model.mapper.Mapper;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,5 +22,9 @@ public class CommonTypeMapper extends Mapper {
 
     public void addAttribute(Attributes attribute){
         attributes.add(attribute);
+    }
+
+    public void addAll(Collection<Attributes> attributes){
+        this.attributes.addAll(attributes);
     }
 }

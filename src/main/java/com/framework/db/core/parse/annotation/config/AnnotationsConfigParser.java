@@ -2,6 +2,7 @@ package com.framework.db.core.parse.annotation.config;
 
 import com.framework.db.core.automation.MapperInterfaceFactoryBean;
 import com.framework.db.core.exception.ConfigException;
+import com.framework.db.core.model.cache.KeyValuePair;
 import com.framework.db.core.model.mapper.Attributes;
 import com.framework.db.core.model.mapper.CommonTypeMapper;
 import com.framework.db.core.model.mapper.JsonTypeMapper;
@@ -114,6 +115,36 @@ public final class AnnotationsConfigParser extends ClassPathBeanDefinitionScanne
         return superresult || beanDefinition.getMetadata().isInterface();
     }
 
+    private List<Attributes> parseNestedAttribute(Class currentClass,String prefix){
+         List<Attributes> result = new LinkedList<>();
+         for(Field subField:currentClass.getDeclaredFields()){
+            Attribute subAttributeAnnotation = subField.getDeclaredAnnotation(Attribute.class);
+            if(null != subAttributeAnnotation){
+                if(!subAttributeAnnotation.isNested()){
+                   Attributes singleAttribute =  parseNonNestedAttribute(prefix+'.'+subField.getName(),subField,subAttributeAnnotation);
+                   result.add(singleAttribute);
+                }else{
+                   List<Attributes> multiAttribute = parseNestedAttribute(subField.getType(),prefix+'.'+subField.getName());
+                   result.addAll(multiAttribute);
+                }
+            }
+         }
+         return result;
+    }
+
+    private Attributes parseNonNestedAttribute(String prefix,Field field,Attribute attributeAnnotation){
+        Attributes attribute = new Attributes();
+        attribute.setJson(attributeAnnotation.isJson());
+        attribute.setProperty(prefix);
+        attribute.setColumn(StringUtils.isEmpty(attributeAnnotation.column())?field.getName():attributeAnnotation.column());
+        attribute.setNested(attributeAnnotation.isNested());
+        return attribute;
+    }
+
+    private Attributes parseNonNestedAttribute(Field field,Attribute attributeAnnotation){
+        return parseNonNestedAttribute(field.getName(),field,attributeAnnotation);
+    }
+
     private void parseMapper(Mapper mapperAnnotation, Class mapperClass){
         CommonTypeMapper commonTypeMapper = new CommonTypeMapper();
         commonTypeMapper.setMapperClass(mapperClass);
@@ -122,16 +153,17 @@ public final class AnnotationsConfigParser extends ClassPathBeanDefinitionScanne
            Annotation[] fieldAnnotations = field.getDeclaredAnnotations();
            for(Annotation annotation: fieldAnnotations){
                if(annotation instanceof Attribute){
-                   Attributes attribute = new Attributes();
-                   attribute.setProperty(field.getName());
-                   attribute.setColumn(((Attribute) annotation).column());
-                   attribute.setJson(((Attribute) annotation).isJson());
-                   attribute.setNested(((Attribute) annotation).isNested());
-                   if(attribute.isNested()){
-                       commonTypeMapper.setHaveNestedProperty(true);
+                   Attribute attributeAnnotation = (Attribute)annotation;
+                   if(attributeAnnotation.isNested()){
+                      List<Attributes> attributes = parseNestedAttribute(field.getType(),field.getName());
+                      commonTypeMapper.addAll(attributes);
+                      commonTypeMapper.setHaveNestedProperty(true);
+                      break;
+                   }else{
+                      Attributes attribute =  parseNonNestedAttribute(field,attributeAnnotation);
+                      commonTypeMapper.addAttribute(attribute);
+                      break;
                    }
-                   commonTypeMapper.addAttribute(attribute);
-                   break;
                }
            }
         }
