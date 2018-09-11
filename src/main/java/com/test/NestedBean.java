@@ -1,16 +1,24 @@
 package com.test;
 
+import com.framework.db.core.parse.annotation.config.mapper.Attribute;
+import com.framework.db.core.parse.annotation.config.mapper.Mapper;
+
 /**
  * Created by zhangteng on 2018/8/25.
  */
+@Mapper(namespace = DemoMapperTest.class ,name = "nestedTest")
 public class NestedBean {
 
+    @Attribute(column = "id")
     private Integer id;
 
+    @Attribute
     private String name;
 
+    @Attribute(isNested = true)
     private DemoBean bean;
 
+    @Attribute(isJson = true)
     private Object attr;
 
     public Integer getId() {

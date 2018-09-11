@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Attribute {
-    String column();
+    String column() default "";
     boolean isJson() default false;
     boolean isNested() default  false;
 }
