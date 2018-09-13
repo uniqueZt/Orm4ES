@@ -1,15 +1,13 @@
 package com.framework.db.core.parse.annotation.config;
 
-import org.springframework.stereotype.Component;
-
 import java.lang.annotation.*;
 
 /**
- * Created by zhangteng on 2018/8/31.
+ * Created by zhangteng on 2018/9/13.
  */
 @Documented
-@Target({ElementType.TYPE,ElementType.ANNOTATION_TYPE})
+@Target(ElementType.TYPE)
+@Inherited
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Namespace {
-
 }
