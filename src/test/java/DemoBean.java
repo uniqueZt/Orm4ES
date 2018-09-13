@@ -1,14 +1,24 @@
+import com.framework.db.core.parse.annotation.config.mapper.Attribute;
+import com.framework.db.core.parse.annotation.config.mapper.Mapper;
+import com.sun.tracing.dtrace.Attributes;
+import org.springframework.beans.factory.annotation.Autowired;
+
 /**
  * Created by zhangteng on 2018/8/18.
  */
+@Mapper(namespace = DemoMapper.class,name = "demoBean")
 public class DemoBean {
 
-    private String logId;
+    @Autowired
+    public String logId;
 
+    @Attribute(column = "log_content")
     private String logContent;
 
+    @Attribute(column = "action_name")
     private String actionName;
 
+    @Attribute(column = "create_time")
     private String createTime;
 
     public String getLogId() {

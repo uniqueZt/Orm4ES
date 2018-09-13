@@ -13,7 +13,11 @@ import java.util.Map;
 public class DemoClass {
 
     public static void main(String[] args) throws Exception{
-       test3();
+       test4();
+    }
+
+    public static void test4() throws Exception {
+        ApplicationContext apx = new ClassPathXmlApplicationContext("classpath:spring/spring_annotation.xml");
     }
 
     public static void test3() throws Exception{
