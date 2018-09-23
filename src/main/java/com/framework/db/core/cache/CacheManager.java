@@ -1,5 +1,7 @@
 package com.framework.db.core.cache;
 
+import com.framework.db.core.exception.ExecuteException;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -26,6 +28,8 @@ public abstract class CacheManager {
 
     private long expireTime;
 
+    private long expireTimeAfterWrite;
+
     private volatile long readyTime;
 
     private CacheLevel cacheLevel;
@@ -45,12 +49,23 @@ public abstract class CacheManager {
              currentKeyCount.decrementAndGet();
          }
          cacheKeys.offer(cacheKey);
+         if(isClearCache()){
+             clear();
+         }
     }
 
     protected void remove(CacheKey cacheKey){
         Segment segment = segmentForCacheKey(cacheKey);
         segment.remove(cacheKey);
         cacheKeys.remove(cacheKey);
+        currentKeyCount.decrementAndGet();
+    }
+
+    public final void removeUnlock(CacheKey cacheKey){
+        Segment segment = segmentForCacheKey(cacheKey);
+        segment.removeUnlock(cacheKey);
+        cacheKeys.remove(cacheKey);
+        currentKeyCount.decrementAndGet();
     }
 
     //是否清除缓存
@@ -69,6 +84,7 @@ public abstract class CacheManager {
     public void clear(){
         cache.clear();
         cacheKeys.clear();
+        currentKeyCount.set(0);
         resetReadyTime();
     }
 
@@ -123,6 +139,9 @@ public abstract class CacheManager {
         for(int i=0;i<segments.length;i++){
             segments[i] = new Segment();
             segments[i].setCache(cache);
+            segments[i].setExpireTimeAfterWrite(expireTimeAfterWrite);
+            segments[i].setCacheManager(this);
+
         }
         readyTime = System.currentTimeMillis();
     }
@@ -139,7 +158,9 @@ public abstract class CacheManager {
 
     public Segment segmentForCacheKey(CacheKey cacheKey){
         int hashCode = cacheKey.hashCode();
-        return segments[(segments.length -1) & hashCode];
+        int index = (segments.length -1) & hashCode;
+        System.out.println(cacheKey.getSql()+"定位到"+index);
+        return segments[index];
     }
 
     public int getMaxSize() {
@@ -158,7 +179,7 @@ public abstract class CacheManager {
         this.cache = cache;
     }
 
-    public ConcurrentLinkedDeque<CacheKey> getCacheKeys() {
+    protected ConcurrentLinkedDeque<CacheKey> getCacheKeys() {
         return cacheKeys;
     }
 
@@ -180,5 +201,13 @@ public abstract class CacheManager {
 
     public void setCacheLevel(CacheLevel cacheLevel) {
         this.cacheLevel = cacheLevel;
+    }
+
+    public long getExpireTimeAfterWrite() {
+        return expireTimeAfterWrite;
+    }
+
+    public void setExpireTimeAfterWrite(long expireTimeAfterWrite) {
+        this.expireTimeAfterWrite = expireTimeAfterWrite;
     }
 }

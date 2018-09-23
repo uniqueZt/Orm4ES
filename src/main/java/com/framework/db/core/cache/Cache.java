@@ -7,9 +7,9 @@ import java.util.List;
  */
 public interface Cache {
 
-    void put(CacheKey cacheKey, Object value);
+    void put(CacheKey cacheKey, CacheResult value);
 
-    Object get(CacheKey cacheKey);
+    CacheResult get(CacheKey cacheKey);
 
     void remove(CacheKey cacheKey);
 

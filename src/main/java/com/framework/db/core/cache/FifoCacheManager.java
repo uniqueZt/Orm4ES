@@ -9,6 +9,7 @@ public class FifoCacheManager extends CacheManager{
 
     @Override
     protected void evictData() {
+        System.out.println("驱逐");
         ConcurrentLinkedDeque<CacheKey> cacheKeys = getCacheKeys();
         CacheKey cacheKey = cacheKeys.poll();
         if(cacheKey != null){

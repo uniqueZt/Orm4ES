@@ -8,6 +8,14 @@ import java.io.Serializable;
 public class CacheKey{
     private String sql;
 
+    public CacheKey() {
+        this.sql = sql;
+    }
+
+    public CacheKey(String sql) {
+        this.sql = sql;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj == null){
