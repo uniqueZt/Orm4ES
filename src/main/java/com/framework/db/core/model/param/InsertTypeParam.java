@@ -3,7 +3,7 @@ package com.framework.db.core.model.param;
 /**
  * Created by zhangteng on 2018/8/18.
  */
-public class InsertTypeParam {
+public class InsertTypeParam implements OperateParam{
     private String key;
 
     private Object paramObject;

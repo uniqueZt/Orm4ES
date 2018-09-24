@@ -5,7 +5,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 /**
  * Created by zhangteng on 2018/8/18.
  */
-public class DeleteByQueryParam {
+public class DeleteByQueryParam implements OperateParam{
 
     private QueryBuilder queryBuilder;
 

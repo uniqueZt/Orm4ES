@@ -2,6 +2,10 @@ package com.framework.db.core.proxy;
 
 import com.framework.db.core.exception.ExecuteException;
 import com.framework.db.core.exception.InternalException;
+import com.framework.db.core.filter.FilterPipeLine;
+import com.framework.db.core.filter.OperateEntity;
+import com.framework.db.core.filter.OperateType;
+import com.framework.db.core.filter.PipeLineResult;
 import com.framework.db.core.middle.ElasticSearchCallSupport;
 import com.framework.db.core.model.mapper.CommonTypeMapper;
 import com.framework.db.core.model.mapper.Mapper;
@@ -23,6 +27,8 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
     private ElasticSearchCallSupport elasticSearchCallSupport;
 
     private Namespace<T> namespace;
+
+    private FilterPipeLine filterPipeLine;
 
     public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
         String mappingId = method.getName();
@@ -48,6 +54,16 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         return null;
     }
 
+    private OperateEntity getOperateEntity(String mappingId, OperateType operateType,Mapper mapper,OperateParam operateParam){
+          OperateEntity operateEntity = new OperateEntity();
+          operateEntity.setMapper(mapper);
+          operateEntity.setMappingId(mappingId);
+          operateEntity.setNamespaceClass(getNamespace().getNamespaceClass());
+          operateEntity.setOperateType(operateType);
+          operateEntity.setOperateParam(operateParam);
+          return operateEntity;
+    }
+
     private List<?> sqlSelectOperateTypeProxy(Method method,Object[] objects){
         String mappingId = method.getName();
         SqlSelectTypeOperate sqlSelectTypeOperate = (SqlSelectTypeOperate)namespace.getOperateMap().get(mappingId);
@@ -56,7 +72,17 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         if(sqlSelectTypeParam.getParams().keySet().size() < sqlSelectTypeOperate.getParamSize()){
             throw new ExecuteException("传入的参数个数不能少于sql配置的参数");
         }
-        return elasticSearchCallSupport.sqlSelect(sqlSelectTypeParam.getParams(),sqlSelectTypeOperate,mapper);
+        OperateEntity operateEntity = getOperateEntity(mappingId,OperateType.sqlSelect,mapper,sqlSelectTypeParam);
+        PipeLineResult pipeLineResult = filterPipeLine.doFilter(operateEntity);
+        if(pipeLineResult.isPassed()){
+            List<?> result =  elasticSearchCallSupport.sqlSelect(sqlSelectTypeParam.getParams(),sqlSelectTypeOperate,mapper);
+            pipeLineResult.setFilterResult(result);
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+            return  result;
+        }else{
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+            return (List)pipeLineResult.getFilterResult();
+        }
     }
 
     private List<?> selectOperateTypeProxy(Method method,Object[] objects){
@@ -67,7 +93,17 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         if(selectTypeParam.getQueryBuilder() == null){
             throw new ExecuteException("select类型的操作，query不能为空");
         }
-        return elasticSearchCallSupport.select(selectTypeParam.getQueryBuilder(),selectTypeOperate,mapper);
+        OperateEntity operateEntity = getOperateEntity(mappingId,OperateType.select,mapper,selectTypeParam);
+        PipeLineResult pipeLineResult = filterPipeLine.doFilter(operateEntity);
+        if(pipeLineResult.isPassed()){
+            List<?> result =  elasticSearchCallSupport.select(selectTypeParam.getQueryBuilder(),selectTypeOperate,mapper);
+            pipeLineResult.setFilterResult(result);
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+            return  result;
+        }else{
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+            return (List)pipeLineResult.getFilterResult();
+        }
     }
 
     private void deleteByQueryOperateTypeProxy(Method method,Object[] objects){
@@ -77,7 +113,14 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         if(deleteByQueryParam.getQueryBuilder() == null){
             throw new ExecuteException("deleteByQuery操作query不能为空");
         }
-        elasticSearchCallSupport.deleteByQuery(deleteByQueryParam.getQueryBuilder(),deleteByQueryTypeOperate);
+        OperateEntity operateEntity = getOperateEntity(mappingId,OperateType.deleteByQuery,null,deleteByQueryParam);
+        PipeLineResult pipeLineResult = filterPipeLine.doFilter(operateEntity);
+        if(pipeLineResult.isPassed()) {
+            elasticSearchCallSupport.deleteByQuery(deleteByQueryParam.getQueryBuilder(), deleteByQueryTypeOperate);
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+        }else{
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+        }
     }
 
     private void deleteByKeyOperateTypeProxy(Method method,Object[] objects){
@@ -87,7 +130,14 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         if(deleteByKeyParam.getKey() == null){
             throw new ExecuteException("deleteByKey操作key不能为空");
         }
-        elasticSearchCallSupport.deleteByKey(deleteByKeyParam.getKey(),deleteByKeyTypeOperate);
+        OperateEntity operateEntity = getOperateEntity(mappingId,OperateType.deleteByKey,null,deleteByKeyParam);
+        PipeLineResult pipeLineResult = filterPipeLine.doFilter(operateEntity);
+        if(pipeLineResult.isPassed()) {
+            elasticSearchCallSupport.deleteByKey(deleteByKeyParam.getKey(), deleteByKeyTypeOperate);
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+        }else{
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+        }
     }
 
     private void insertOperateTypeProxy(Method method,Object[] objects){
@@ -95,10 +145,17 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         InsertTypeOperate insertTypeOperate = (InsertTypeOperate) namespace.getOperateMap().get(mappingId);
         CommonTypeMapper commonTypeMapper = (CommonTypeMapper) namespace.getMapperMap().get(insertTypeOperate.getParameterName());
         InsertTypeParam insertTypeParam = ParamUtils.parseInsertTypeParam(method,objects);
-        if(null != insertTypeParam.getKey()) {
-            elasticSearchCallSupport.insert(insertTypeParam.getKey(), insertTypeParam.getParamObject(), insertTypeOperate, commonTypeMapper);
+        OperateEntity operateEntity = getOperateEntity(mappingId,OperateType.insert,commonTypeMapper,insertTypeParam);
+        PipeLineResult pipeLineResult = filterPipeLine.doFilter(operateEntity);
+        if(pipeLineResult.isPassed()){
+            if(null != insertTypeParam.getKey()) {
+                elasticSearchCallSupport.insert(insertTypeParam.getKey(), insertTypeParam.getParamObject(), insertTypeOperate, commonTypeMapper);
+            }else{
+                elasticSearchCallSupport.insert(insertTypeParam.getParamObject(),insertTypeOperate,commonTypeMapper);
+            }
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
         }else{
-            elasticSearchCallSupport.insert(insertTypeParam.getParamObject(),insertTypeOperate,commonTypeMapper);
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
         }
     }
 
@@ -110,7 +167,14 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         if(null == batchInsertTypeParam.getParamObjects()){
             throw new ExecuteException("batchInsert操作参数不能为空");
         }
-        elasticSearchCallSupport.batchInsert(batchInsertTypeParam.getParamObjects(),batchInsertTypeOperate,commonTypeMapper);
+        OperateEntity operateEntity = getOperateEntity(mappingId,OperateType.batchInsert,commonTypeMapper,batchInsertTypeParam);
+        PipeLineResult pipeLineResult = filterPipeLine.doFilter(operateEntity);
+        if(pipeLineResult.isPassed()) {
+            elasticSearchCallSupport.batchInsert(batchInsertTypeParam.getParamObjects(), batchInsertTypeOperate, commonTypeMapper);
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+        }else{
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+        }
     }
 
     private void updateOperateTypeProxy(Method method,Object[] objects){
@@ -121,7 +185,14 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
         if(updateByKeyParam.getKey()==null || updateByKeyParam.getParamObject() == null){
             throw new ExecuteException("updateByKey类操作，key和parameter 均不能为空");
         }
-        elasticSearchCallSupport.updateByKey(updateByKeyParam.getKey(),updateByKeyParam.getParamObject(),updateByKeyTypeOperate,commonTypeMapper);
+        OperateEntity operateEntity = getOperateEntity(mappingId,OperateType.updateByKey,commonTypeMapper,updateByKeyParam);
+        PipeLineResult pipeLineResult = filterPipeLine.doFilter(operateEntity);
+        if(pipeLineResult.isPassed()) {
+            elasticSearchCallSupport.updateByKey(updateByKeyParam.getKey(), updateByKeyParam.getParamObject(), updateByKeyTypeOperate, commonTypeMapper);
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+        }else{
+            filterPipeLine.afterFilter(operateEntity,pipeLineResult);
+        }
     }
 
     public  T createProxy(){
@@ -149,5 +220,13 @@ public class MapperInterfaceProxy<T> implements MethodInterceptor {
     public MapperInterfaceProxy setNamespace(Namespace namespace) {
         this.namespace = namespace;
         return this;
+    }
+
+    public FilterPipeLine getFilterPipeLine() {
+        return filterPipeLine;
+    }
+
+    public void setFilterPipeLine(FilterPipeLine filterPipeLine) {
+        this.filterPipeLine = filterPipeLine;
     }
 }

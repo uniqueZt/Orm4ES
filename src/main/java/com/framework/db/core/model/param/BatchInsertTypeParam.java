@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by zhangteng on 2018/8/18.
  */
-public class BatchInsertTypeParam {
+public class BatchInsertTypeParam implements OperateParam{
 
     private List paramObjects;
 
