@@ -2,12 +2,11 @@ package com.framework.db.core.parse.annotation.config;
 
 import com.framework.db.core.automation.MapperInterfaceFactoryBean;
 import com.framework.db.core.exception.ConfigException;
-import com.framework.db.core.model.cache.KeyValuePair;
 import com.framework.db.core.model.mapper.Attributes;
 import com.framework.db.core.model.mapper.CommonTypeMapper;
 import com.framework.db.core.model.mapper.JsonTypeMapper;
 import com.framework.db.core.model.mapper.MapTypeMapper;
-import com.framework.db.core.model.namespace.NamespaceSettings;
+import com.framework.db.core.model.namespace.GlobalSettings;
 import com.framework.db.core.model.operate.*;
 import com.framework.db.core.parse.annotation.config.mapper.Attribute;
 import com.framework.db.core.parse.annotation.config.mapper.Mapper;
@@ -21,7 +20,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import java.lang.annotation.Annotation;
@@ -76,7 +74,7 @@ public final class AnnotationsConfigParser extends ClassPathBeanDefinitionScanne
         }
         //组装namespace
         assembleNamespaceSetting();
-        NamespaceSettings namespaceSettings = NamespaceSettings.getInstance();
+        GlobalSettings namespaceSettings = GlobalSettings.getInstance();
         for(Map.Entry<String, com.framework.db.core.model.namespace.Namespace> entry:namespaceSettings.getNamespaceMap().entrySet()){
             BeanDefinition beanDefinition = getBeanDefinition(entry);
             super.getRegistry().registerBeanDefinition(entry.getKey(),beanDefinition);
@@ -96,7 +94,7 @@ public final class AnnotationsConfigParser extends ClassPathBeanDefinitionScanne
     }
 
     private void assembleNamespaceSetting(){
-        NamespaceSettings namespaceSettings = NamespaceSettings.getInstance();
+        GlobalSettings namespaceSettings = GlobalSettings.getInstance();
         for(Map.Entry<Class, com.framework.db.core.model.namespace.Namespace> entry:namespaceCache.entrySet()){
             Map<String, com.framework.db.core.model.mapper.Mapper> mapperMap = mapperCache.get(entry.getKey());
             if(null != mapperMap){

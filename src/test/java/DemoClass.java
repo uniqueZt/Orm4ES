@@ -1,11 +1,5 @@
-import com.framework.db.core.model.namespace.NamespaceSettings;
-import com.framework.db.core.parse.xml.XmlConfigParser;
-import com.framework.db.core.parse.xml.XmlConfigSettingsParser;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by zhangteng on 2018/8/16.

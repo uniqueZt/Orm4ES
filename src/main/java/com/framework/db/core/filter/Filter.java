@@ -5,6 +5,8 @@ package com.framework.db.core.filter;
  */
 public interface Filter {
 
+    public void init();
+
     public FilterResult beforeExecute(OperateEntity entity);
 
     public void afterExecute(OperateEntity entity,Object executeResult);

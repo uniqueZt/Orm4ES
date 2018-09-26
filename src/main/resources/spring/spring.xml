@@ -11,7 +11,7 @@
 
 
 
-    <bean class="com.framework.db.core.automation.MapperInterfaceDefinitionRegister">
+    <bean class="com.framework.db.core.automation.MapperInterfaceRegister">
         <property name="settingConfigPath" value="classpath:test/es_setting.xml"/>
     </bean>
 

@@ -31,8 +31,9 @@ public class CacheKey{
         return sql;
     }
 
-    public void setSql(String sql) {
+    public CacheKey setSql(String sql) {
         this.sql = sql;
+        return this;
     }
 
     @Override

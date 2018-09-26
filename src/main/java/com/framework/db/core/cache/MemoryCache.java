@@ -7,15 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MemoryCache implements Cache{
 
-    private ConcurrentHashMap<CacheKey,Object> cacheMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<CacheKey,CacheResult> cacheMap = new ConcurrentHashMap<>();
+
 
     @Override
-    public void put(CacheKey cacheKey, Object value) {
-        cacheMap.put(cacheKey,value);
-    }
-
-    @Override
-    public Object get(CacheKey cacheKey) {
+    public CacheResult get(CacheKey cacheKey) {
         return cacheMap.get(cacheKey);
     }
 
@@ -27,5 +23,10 @@ public class MemoryCache implements Cache{
     @Override
     public void clear() {
         cacheMap.clear();
+    }
+
+    @Override
+    public void put(CacheKey cacheKey, CacheResult value) {
+        cacheMap.put(cacheKey,value);
     }
 }
